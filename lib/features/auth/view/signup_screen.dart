@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -32,8 +33,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         } else {
           _showError('Signup failed');
         }
+      } on FirebaseAuthException catch (e) {
+        // Menangani error spesifik Firebase
+        if (e.code == 'email-already-in-use') {
+          _showError('This email is already in use.');
+        } else if (e.code == 'weak-password') {
+          _showError('The password is too weak.');
+        } else {
+          _showError('Error: ${e.message}');
+        }
       } catch (e) {
-        _showError('Error: $e');
+        _showError('Error: $e.code');
       }
     }
   }

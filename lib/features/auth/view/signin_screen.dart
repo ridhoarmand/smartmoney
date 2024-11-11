@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -109,11 +110,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
       if (result != null) {
         context.go('/home');
-      } else {
-        _showError('Invalid email or password');
       }
     } catch (e) {
-      _showError('An error occurred. Please try again later.');
+      _showError(e.toString());
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -133,9 +132,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
       if (result != null) {
         context.go('/home');
-      } else {
-        _showError('Google sign in failed');
       }
+    } on FirebaseAuthException catch (e) {
+      _showError('${e.message}');
     } catch (e) {
       _showError('An error occurred during Google sign in');
     } finally {
