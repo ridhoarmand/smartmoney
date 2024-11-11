@@ -32,27 +32,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   Future<void> _signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) {
-        // User canceled the sign-in process
-        return;
-      }
+    final authRepository = ref.read(authRepositoryProvider);
+    final result = await authRepository.signInWithGoogle();
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      // Sign in the user with the Google credential
-      await FirebaseAuth.instance.signInWithCredential(credential);
-
-      // Navigate to the home page
+    if (result != null) {
       context.go('/home');
-    } catch (e) {
-      // Handle sign-in failure
+    } else {
       _showError("Google sign-in failed. Please try again.");
     }
   }

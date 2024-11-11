@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-
 import '../service/auth_service.dart';
 
 class AuthRepository {
@@ -17,5 +16,9 @@ class AuthRepository {
 
   Future<void> signOut() {
     return _authService.signOut();
+  }
+
+  Future<UserCredential?> signInWithGoogle() {
+    return _authService.signInWithGoogle();
   }
 }
