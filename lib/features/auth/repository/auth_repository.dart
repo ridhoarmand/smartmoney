@@ -6,6 +6,8 @@ class AuthRepository {
 
   AuthRepository(this._authService);
 
+  get currentUser => _authService.currentUser;
+
   Future<UserCredential?> signUp(String email, String password) {
     return _authService.signUp(email, password);
   }
