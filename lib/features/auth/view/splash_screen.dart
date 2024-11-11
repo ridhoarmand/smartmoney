@@ -35,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
           context.go('/home');
         } else {
           // User is not logged in, redirect to login
-          context.go('/login');
+          context.go('/signin');
         }
       }
     } catch (e) {
