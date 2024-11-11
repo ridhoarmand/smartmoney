@@ -47,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
         );
         // Pada error, arahkan ke login untuk aman
-        context.go('/login');
+        context.go('/signin');
       }
     }
   }

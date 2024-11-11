@@ -171,7 +171,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               const Text('Already have an account?'),
               TextButton(
                 onPressed: () {
-                  context.go('/login');
+                  context.go('/signin');
                 },
                 child: const Text('Sign In'),
               ),
