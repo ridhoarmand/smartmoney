@@ -14,24 +14,34 @@ class AuthService {
         email: email,
         password: password,
       );
+    } on FirebaseAuthException catch (e) {
+      rethrow;
     } catch (e) {
-      print("Sign Up Error: $e");
-      return null;
+      // Jika error lainnya, lemparkan kembali kesalahan umum
+      throw Exception("An unknown error occurred: $e");
     }
   }
 
   Future<UserCredential?> signIn(String email, String password) async {
     try {
+      // Coba login dengan email dan password
       UserCredential? userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      // Reload user after successful sign-in to ensure data is updated
+
+      // Reload user setelah sign-in untuk memastikan data terupdate
       await _auth.currentUser?.reload();
       return userCredential;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-credential') {
+        throw ('Username and password do not match');
+      } else {
+        throw ('${e.code} : ${e.message}');
+      }
     } catch (e) {
-      print("Sign In Error: $e");
-      return null;
+      // Error lainnya selain FirebaseAuthException
+      throw Exception('An unknown error occurred: $e');
     }
   }
 
@@ -61,15 +71,10 @@ class AuthService {
       await _auth.currentUser?.reload();
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'account-exists-with-different-credential') {
-        print("Account exists with different credential.");
-      } else if (e.code == 'invalid-credential') {
-        print("Invalid Google credential.");
-      }
-      return null;
+      rethrow;
     } catch (e) {
-      print("Google Sign-In Error: $e");
-      return null;
+      // Jika error lainnya, lemparkan kembali kesalahan umum
+      throw Exception("An unknown error occurred: $e");
     }
   }
 }
