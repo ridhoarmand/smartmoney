@@ -28,10 +28,17 @@ class ListTileEditProfil extends ConsumerWidget {
               ? Image.network(
                   user!.photoURL!,
                   fit: BoxFit.fill,
-                  errorBuilder: (context, error, stackTrace) =>
-                      Image.asset('assets/images/logo-icon.png'),
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    Icons.person,
+                    size: 35,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
                 )
-              : Image.asset('assets/images/logo-icon.png'),
+              : Icon(
+                  Icons.person,
+                  size: 35,
+                  color: Theme.of(context).iconTheme.color,
+                ),
         ),
       ),
       title: Text(
