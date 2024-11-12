@@ -299,15 +299,19 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   Widget _buildOrDivider() {
     return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 16),
+      padding: EdgeInsets.all(16),
       child: Row(
         children: [
-          Expanded(child: Divider()),
+          Expanded(
+            child: Divider(thickness: 3),
+          ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: Text("OR"),
           ),
-          Expanded(child: Divider()),
+          Expanded(
+            child: Divider(thickness: 3),
+          ),
         ],
       ),
     );
