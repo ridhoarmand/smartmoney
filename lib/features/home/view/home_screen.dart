@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartmoney/features/profile/view/profile_screen.dart';
+
 import '../provider/bottom_navbar_provider.dart';
 
 class MenuItem {

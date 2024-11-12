@@ -1,10 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'core/router_provider.dart';
 import 'core/shared_preference_provider.dart';
-
 import 'core/theme.dart';
+import 'core/theme_provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -25,9 +26,11 @@ class MyApp extends ConsumerWidget {
     return sharedPrefs.when(
       data: (prefs) {
         final router = ref.watch(goRouterProvider);
+        final theme = ref.watch(themeProvider);
 
         return MaterialApp.router(
           title: 'Smart Money',
+          themeMode: theme.currentTheme,
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           routerConfig: router,

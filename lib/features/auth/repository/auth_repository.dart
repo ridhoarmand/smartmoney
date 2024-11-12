@@ -8,6 +8,8 @@ class AuthRepository {
 
   get currentUser => _authService.currentUser;
 
+  get isSignedIn => _authService.isSignedIn;
+
   Future<UserCredential?> signUp(String email, String password) {
     return _authService.signUp(email, password);
   }

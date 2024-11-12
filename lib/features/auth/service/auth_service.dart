@@ -8,6 +8,10 @@ class AuthService {
     return _auth.currentUser;
   }
 
+  get isSignedIn {
+    return _auth.currentUser != null;
+  }
+
   Future<UserCredential?> signUp(String email, String password) async {
     try {
       return await _auth.createUserWithEmailAndPassword(

@@ -1,5 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:smartmoney/features/auth/view/forgot_password_screen.dart';
+import 'package:smartmoney/features/profile/view/darkmode_screen.dart';
+import 'package:smartmoney/features/profile/view/edit_profile_screen.dart';
+
 import '../features/auth/view/signin_screen.dart';
 import '../features/auth/view/signup_screen.dart';
 import '../features/auth/view/splash_screen.dart';
@@ -30,8 +33,16 @@ class AppRouter {
             ),
             GoRoute(
               path: '/home',
-              builder: (context, state) => HomeScreen(),
-            )
+              builder: (context, state) => const HomeScreen(),
+            ),
+            GoRoute(
+              path: '/profile-edit',
+              builder: (context, state) => const ProfileEdit(),
+            ),
+            GoRoute(
+              path: '/darkmode',
+              builder: (context, state) => const DarkModeScreen(),
+            ),
           ],
         );
 }
