@@ -36,8 +36,8 @@ class AppRouter {
               builder: (context, state) => const HomeScreen(),
             ),
             GoRoute(
-              path: '/profile-edit',
-              builder: (context, state) => const ProfileEdit(),
+              path: '/edit-profile',
+              builder: (context, state) => const EditProfileScreen(),
             ),
             GoRoute(
               path: '/darkmode',

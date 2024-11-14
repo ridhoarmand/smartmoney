@@ -38,11 +38,7 @@ class BodyProfileScreen extends ConsumerWidget {
           children: [
             ListTileEditProfil(authRepository: authRepository),
             const Divider(),
-            // ListTileEditPassword(),
             const ListTileDarkMode(),
-            // const Divider(),
-            // ListTileFeedback(user: user),
-            // const ListTileAbout(),
             const Divider(),
             ListTileSignOut(authRepository: authRepository),
           ],
