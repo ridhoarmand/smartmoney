@@ -30,6 +30,8 @@ class BodyProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authRepository = ref.read(authRepositoryProvider);
 
+    print(authRepository.currentUser);
+
     return SizedBox.expand(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(10.0),

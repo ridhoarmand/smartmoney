@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smartmoney/features/profile/view/profile_screen.dart';
+import 'package:smartmoney/features/transaction/view/transaction_screen.dart';
 
+import '../../product/view/product_screen.dart';
 import '../provider/bottom_navbar_provider.dart';
 
 class MenuItem {
@@ -27,10 +29,18 @@ class HomeScreen extends ConsumerWidget {
     final List<MenuItem> menus = [
       MenuItem(
         appBar: null,
-        body: const Center(child: Text('Home Screen')),
+        body: ProductScreen(),
         bottomNavigationBarItem: const BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
+          icon: Icon(Icons.dashboard),
+          label: 'Product',
+        ),
+      ),
+      MenuItem(
+        appBar: null,
+        body: const TransactionScreen(),
+        bottomNavigationBarItem: const BottomNavigationBarItem(
+          icon: Icon(Icons.account_balance_wallet),
+          label: 'Transaction',
         ),
       ),
       MenuItem(
