@@ -1,1 +1,33 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"mojadiapp-smartmoney","appId":"1:601522394171:android:31eebf4be47f02998fb81e","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"mojadiapp-smartmoney","configurations":{"android":"1:601522394171:android:31eebf4be47f02998fb81e","ios":"1:601522394171:ios:0b8b4cdc3d3cec628fb81e","macos":"1:601522394171:ios:0b8b4cdc3d3cec628fb81e","web":"1:601522394171:web:6b562c1e512c47478fb81e","windows":"1:601522394171:web:60415a819a5507348fb81e"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "mojadiapp-smartmoney",
+          "appId": "1:601522394171:android:31eebf4be47f02998fb81e",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "mojadiapp-smartmoney",
+          "configurations": {
+            "android": "1:601522394171:android:31eebf4be47f02998fb81e",
+            "ios": "1:601522394171:ios:0b8b4cdc3d3cec628fb81e",
+            "macos": "1:601522394171:ios:0b8b4cdc3d3cec628fb81e",
+            "web": "1:601522394171:web:6b562c1e512c47478fb81e",
+            "windows": "1:601522394171:web:60415a819a5507348fb81e"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}

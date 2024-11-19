@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+
 import '../service/auth_service.dart';
 
 class AuthRepository {
@@ -11,11 +12,11 @@ class AuthRepository {
   get isSignedIn => _authService.isSignedIn;
 
   Future<UserCredential?> signUp(String email, String password) {
-    return _authService.signUp(email, password);
+    return _authService.signInWithEmail(email, password);
   }
 
   Future<UserCredential?> signIn(String email, String password) {
-    return _authService.signIn(email, password);
+    return _authService.signInWithEmail(email, password);
   }
 
   Future<void> signOut() {

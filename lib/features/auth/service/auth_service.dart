@@ -1,84 +1,165 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-class AuthService {
+class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  get currentUser {
-    return _auth.currentUser;
-  }
+  // Define scopes for Google Sign In
+  static const List<String> scopes = <String>[
+    'email',
+    'profile',
+    'openid',
+  ];
 
-  get isSignedIn {
-    return _auth.currentUser != null;
-  }
+  // Initialize Google Sign In with web client ID
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId:
+        '601522394171-9hmhg1sias624f4fjrh18pl9frr03eu6.apps.googleusercontent.com',
+    // Replace with your web client ID
+    scopes: scopes,
+  );
 
-  Future<UserCredential?> signUp(String email, String password) async {
-    try {
-      return await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-    } on FirebaseAuthException catch (e) {
-      rethrow;
-    } catch (e) {
-      // Jika error lainnya, lemparkan kembali kesalahan umum
-      throw Exception("An unknown error occurred: $e");
-    }
-  }
+  // Current user getter
+  User? get currentUser => _auth.currentUser;
 
-  Future<UserCredential?> signIn(String email, String password) async {
-    try {
-      // Coba login dengan email dan password
-      UserCredential? userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+  // Authentication state stream
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-      // Reload user setelah sign-in untuk memastikan data terupdate
-      await _auth.currentUser?.reload();
-      return userCredential;
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'invalid-credential') {
-        throw ('Username and password do not match');
-      } else {
-        throw ('${e.code} : ${e.message}');
-      }
-    } catch (e) {
-      // Error lainnya selain FirebaseAuthException
-      throw Exception('An unknown error occurred: $e');
-    }
-  }
+  // Check if user is signed in
+  bool get isSignedIn => _auth.currentUser != null;
 
-  Future<void> signOut() async {
-    await _auth.signOut();
-    await GoogleSignIn().signOut();
-  }
-
+  // Sign in with Google
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      GoogleSignInAccount? googleUser;
+
+      if (kIsWeb) {
+        // Web-specific sign in flow
+        try {
+          // Try silent sign in first
+          googleUser = await _googleSignIn.signInSilently();
+
+          // If silent sign in fails, try regular sign in
+          googleUser ??= await _googleSignIn.signIn();
+
+          // Check for required scopes authorization
+          final bool isAuthorized = await _googleSignIn.canAccessScopes(scopes);
+
+          if (!isAuthorized) {
+            final bool granted = await _googleSignIn.requestScopes(scopes);
+            if (!granted) {
+              throw Exception('Required permissions not granted');
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Web Google Sign In error: $e');
+          }
+          rethrow;
+        }
+      } else {
+        // Mobile sign in flow
+        googleUser = await _googleSignIn.signIn();
+      }
+
       if (googleUser == null) {
         return null;
       }
 
+      // Get authentication details
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
+      // Create credential
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      UserCredential? userCredential =
+      // Sign in to Firebase
+      final UserCredential userCredential =
           await _auth.signInWithCredential(credential);
-      // Reload user after successful sign-in to ensure data is updated
+
+      // Reload user data
       await _auth.currentUser?.reload();
+
+      notifyListeners();
+      return userCredential;
+    } catch (e) {
+      if (kDebugMode) {
+        print('SignInWithGoogle error: $e');
+      }
+      rethrow;
+    }
+  }
+
+  // Email/Password Sign Up
+  Future<UserCredential> signUpWithEmail(String email, String password) async {
+    try {
+      final UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      notifyListeners();
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      rethrow;
+      throw _handleFirebaseAuthException(e);
+    }
+  }
+
+  // Email/Password Sign In
+  Future<UserCredential> signInWithEmail(String email, String password) async {
+    try {
+      final UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      notifyListeners();
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthException(e);
+    }
+  }
+
+  // Sign Out
+  Future<void> signOut() async {
+    try {
+      await Future.wait([
+        _auth.signOut(),
+        _googleSignIn.signOut(),
+      ]);
+      notifyListeners();
     } catch (e) {
-      // Jika error lainnya, lemparkan kembali kesalahan umum
-      throw Exception("An unknown error occurred: $e");
+      if (kDebugMode) {
+        print('Sign out error: $e');
+      }
+      rethrow;
+    }
+  }
+
+  // Helper method to handle Firebase Auth exceptions
+  String _handleFirebaseAuthException(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-credential':
+        return 'Invalid credentials. Please check your email and password.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      case 'user-not-found':
+        return 'No account found with this email.';
+      case 'wrong-password':
+        return 'Incorrect password.';
+      case 'email-already-in-use':
+        return 'An account already exists with this email.';
+      case 'operation-not-allowed':
+        return 'This operation is not allowed.';
+      case 'weak-password':
+        return 'Please choose a stronger password.';
+      default:
+        return 'An error occurred: ${e.message}';
     }
   }
 }

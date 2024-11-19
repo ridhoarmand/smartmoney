@@ -26,7 +26,7 @@ class ListTileEditProfil extends ConsumerWidget {
           child: user?.photoURL != null
               ? Image.network(
                   user!.photoURL!,
-                  fit: BoxFit.fill,
+                  fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Icon(
                     Icons.person,
                     size: 35,
