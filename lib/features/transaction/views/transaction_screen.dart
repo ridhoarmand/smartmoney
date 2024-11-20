@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../auth/provider/auth_provider.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
 
@@ -9,10 +9,10 @@ class TransactionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Ambil UID dari provider auth
+    // Ambil UID dari providers auth
     final uid = ref.watch(authRepositoryProvider).currentUser!.uid;
 
-    // Ambil data transaksi dari provider
+    // Ambil data transaksi dari providers
     final transactionAsyncValue = ref.watch(transactionListProvider(uid));
 
     return Scaffold(

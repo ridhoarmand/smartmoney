@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../profile/view/profile_screen.dart';
+import '../../profile/views/profile_screen.dart';
 import '../../transaction/views/transaction_screen.dart';
 import '../../product/view/product_screen.dart';
-import '../provider/bottom_navbar_provider.dart';
+import '../providers/bottom_navbar_provider.dart';
 
 class MenuItem {
   final PreferredSizeWidget? appBar;

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../models/wallet.dart';
-import '../repositories/wallet_repository.dart';
+import '../providers/wallet_provider.dart';
 import 'currency_secelction_screen.dart';
 
 class AddEditWalletScreen extends ConsumerStatefulWidget {

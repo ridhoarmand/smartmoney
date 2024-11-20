@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smartmoney/features/profile/widget/image_picker_edit_profile.dart';
 
-import '../../auth/provider/auth_provider.dart';
-import '../provider/edit_profile_provider.dart';
-import '../widget/form_edit_profile.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../providers/edit_profile_provider.dart';
+import 'widgets/form_edit_profile.dart';
+import 'widgets/image_picker_edit_profile.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});

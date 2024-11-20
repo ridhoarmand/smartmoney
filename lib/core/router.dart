@@ -1,13 +1,12 @@
 import 'package:go_router/go_router.dart';
-import 'package:smartmoney/features/auth/view/forgot_password_screen.dart';
-import 'package:smartmoney/features/profile/view/darkmode_screen.dart';
-import 'package:smartmoney/features/profile/view/edit_profile_screen.dart';
-import 'package:smartmoney/features/wallet/views/wallet_screen.dart';
-
-import '../features/auth/view/signin_screen.dart';
-import '../features/auth/view/signup_screen.dart';
-import '../features/auth/view/splash_screen.dart';
-import '../features/home/view/home_screen.dart';
+import '../features/auth/views/forgot_password_screen.dart';
+import '../features/auth/views/signin_screen.dart';
+import '../features/auth/views/signup_screen.dart';
+import '../features/auth/views/splash_screen.dart';
+import '../features/home/views/home_screen.dart';
+import '../features/profile/views/darkmode_screen.dart';
+import '../features/profile/views/edit_profile_screen.dart';
+import '../features/wallet/views/wallet_screen.dart';
 
 class AppRouter {
   final GoRouter appRouter;

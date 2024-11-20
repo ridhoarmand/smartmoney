@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../repositories/wallet_repository.dart';
+import '../providers/wallet_provider.dart';
 import 'add_wallet_screen.dart';
 
 class WalletScreen extends ConsumerStatefulWidget {
@@ -11,10 +11,10 @@ class WalletScreen extends ConsumerStatefulWidget {
   const WalletScreen({super.key, required this.uid});
 
   @override
-  _WalletScreenState createState() => _WalletScreenState();
+  WalletScreenState createState() => WalletScreenState();
 }
 
-class _WalletScreenState extends ConsumerState<WalletScreen> {
+class WalletScreenState extends ConsumerState<WalletScreen> {
   @override
   void initState() {
     super.initState();

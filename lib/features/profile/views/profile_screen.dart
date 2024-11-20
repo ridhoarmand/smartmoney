@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smartmoney/features/profile/widget/listtile_wallet.dart';
 
-import '../../auth/provider/auth_provider.dart';
-import '../widget/listtile_darkmode.dart';
-import '../widget/listtile_edit_profile.dart';
-import '../widget/listtile_signout.dart';
+import '../../auth/providers/auth_provider.dart';
+import 'widgets/listtile_darkmode.dart';
+import 'widgets/listtile_edit_profile.dart';
+import 'widgets/listtile_signout.dart';
+import 'widgets/listtile_wallet.dart';
 
 // Widget untuk AppBar di halaman Profile
 class AppbarProfileScreen extends StatelessWidget
