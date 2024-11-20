@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smartmoney/features/auth/view/forgot_password_screen.dart';
 import 'package:smartmoney/features/profile/view/darkmode_screen.dart';
 import 'package:smartmoney/features/profile/view/edit_profile_screen.dart';
+import 'package:smartmoney/features/wallet/views/wallet_screen.dart';
 
 import '../features/auth/view/signin_screen.dart';
 import '../features/auth/view/signup_screen.dart';
@@ -42,6 +43,13 @@ class AppRouter {
             GoRoute(
               path: '/darkmode',
               builder: (context, state) => const DarkModeScreen(),
+            ),
+            GoRoute(
+              path: '/wallets',
+              builder: (context, state) {
+                final uid = state.extra as String;
+                return WalletScreen(uid: uid);
+              },
             ),
           ],
         );

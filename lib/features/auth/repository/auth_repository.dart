@@ -7,9 +7,9 @@ class AuthRepository {
 
   AuthRepository(this._authService);
 
-  get currentUser => _authService.currentUser;
+  User? get currentUser => _authService.currentUser;
 
-  get isSignedIn => _authService.isSignedIn;
+  bool get isSignedIn => _authService.isSignedIn;
 
   Future<UserCredential?> signUp(String email, String password) {
     return _authService.signInWithEmail(email, password);

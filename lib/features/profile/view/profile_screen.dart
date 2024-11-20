@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smartmoney/features/profile/widget/listtile_wallet.dart';
 
 import '../../auth/provider/auth_provider.dart';
 import '../widget/listtile_darkmode.dart';
@@ -30,8 +31,6 @@ class BodyProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authRepository = ref.read(authRepositoryProvider);
 
-    print(authRepository.currentUser);
-
     return SizedBox.expand(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(10.0),
@@ -39,6 +38,8 @@ class BodyProfileScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             ListTileEditProfil(authRepository: authRepository),
+            const Divider(),
+            ListTileWallet(uid: authRepository.currentUser!.uid),
             const Divider(),
             const ListTileDarkMode(),
             const Divider(),

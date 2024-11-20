@@ -18,7 +18,11 @@ class AuthService extends ChangeNotifier {
     clientId:
         '601522394171-9hmhg1sias624f4fjrh18pl9frr03eu6.apps.googleusercontent.com',
     // Replace with your web client ID
-    scopes: scopes,
+    scopes: [
+      'email',
+      'profile',
+      'openid',
+    ],
   );
 
   // Current user getter
@@ -38,10 +42,6 @@ class AuthService extends ChangeNotifier {
       if (kIsWeb) {
         // Web-specific sign in flow
         try {
-          // Try silent sign in first
-          googleUser = await _googleSignIn.signInSilently();
-
-          // If silent sign in fails, try regular sign in
           googleUser ??= await _googleSignIn.signIn();
 
           // Check for required scopes authorization
