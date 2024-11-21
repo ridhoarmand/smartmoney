@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_provider.dart';
-import '../models/category.dart';
-import '../service_providers/category_service_provider.dart';
-import 'category_form_screen.dart';
+import '../../category/models/category.dart';
+import '../../category/service_providers/category_service_provider.dart';
+import '../../category/views/category_form_screen.dart';
 
-class CategoryScreen extends ConsumerStatefulWidget {
-  const CategoryScreen({super.key});
+class CategorySelectionScreen extends ConsumerStatefulWidget {
+  const CategorySelectionScreen({super.key});
 
   @override
-  _CategoryScreenState createState() => _CategoryScreenState();
+  _CategorySelectionScreenState createState() =>
+      _CategorySelectionScreenState();
 }
 
-class _CategoryScreenState extends ConsumerState<CategoryScreen>
+class _CategorySelectionScreenState
+    extends ConsumerState<CategorySelectionScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   late final String uid;
@@ -37,13 +39,9 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen>
   Widget build(BuildContext context) {
     final categories = ref.watch(categoryProvider);
 
-    // Get the root categories (categories with no parent)
-    final rootCategories =
-        categories.where((category) => category.parentId == null).toList();
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Category Management'),
+        title: const Text('Select Category'),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -55,8 +53,8 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildCategoryView(rootCategories, 'income'),
-          _buildCategoryView(rootCategories, 'expense'),
+          _buildCategoryView(categories, 'income'),
+          _buildCategoryView(categories, 'expense'),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -73,23 +71,23 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen>
     );
   }
 
-  Widget _buildCategoryView(List<Category> rootCategories, String type) {
+  Widget _buildCategoryView(List<Category> categories, String type) {
     // Filter root categories based on type
-    final filteredRoots =
-        rootCategories.where((category) => category.type == type).toList();
+    final rootCategories = categories
+        .where((category) => category.type == type && category.parentId == null)
+        .toList();
 
-    if (filteredRoots.isEmpty) {
-      return const Center(child: Text('No categories found'));
+    if (rootCategories.isEmpty) {
+      return const Center(child: Text('No categories found.'));
     }
 
     return ListView.builder(
-      itemCount: filteredRoots.length,
+      itemCount: rootCategories.length,
       itemBuilder: (context, index) {
-        final root = filteredRoots[index];
+        final root = rootCategories[index];
 
         // Get children of this root
-        final children = ref
-            .watch(categoryProvider)
+        final children = categories
             .where((category) => category.parentId == root.id)
             .toList();
 
@@ -97,18 +95,15 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListTile(
-              leading: Icon(root.icon), // Use the icon from the category model
+              leading: Icon(root.icon),
               title: Text(root.name,
                   style: const TextStyle(fontWeight: FontWeight.bold)),
-              trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        CategoryFormScreen(uid: uid, category: root),
-                  ),
-                );
+                Navigator.pop(context, {
+                  'id': root.id, // Mengirim ID kategori
+                  'name': root.name, // Mengirim Nama kategori
+                  'type': root.type, // Mengirim Tipe kategori
+                });
               },
             ),
             if (children.isNotEmpty)
@@ -138,14 +133,12 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen>
         ],
       ),
       title: Text(child.name),
-      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CategoryFormScreen(uid: uid, category: child),
-          ),
-        );
+        Navigator.pop(context, {
+          'id': child.id, // Mengirim ID kategori
+          'name': child.name, // Mengirim Nama kategori
+          'type': child.type, // Mengirim Tipe kategori
+        });
       },
     );
   }

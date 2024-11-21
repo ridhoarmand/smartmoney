@@ -1,37 +1,43 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class UserTransaction {
-  final String type;
+  final String categoryId;
+  final String description;
   final double amount;
-  final String category;
-  final String? description;
   final DateTime date;
+  final String walletId;
+  final String? imagePath;
 
   UserTransaction({
-    required this.type,
+    required this.categoryId,
+    required this.description,
     required this.amount,
-    required this.category,
-    this.description,
     required this.date,
+    required this.walletId,
+    this.imagePath, // Image path is optional
   });
 
-  // Konversi dari Map (Firestore) ke model UserTransaction
+  // Firestore document -> UserTransaction
   factory UserTransaction.fromFirestore(Map<String, dynamic> data) {
     return UserTransaction(
-      type: data['type'] as String,
-      amount: (data['amount'] as num).toDouble(),
-      category: data['category'] as String,
-      description: data['description'] as String?,
-      date: DateTime.parse(data['date'] as String),
+      categoryId: data['categoryId'] ?? '',
+      description: data['description'] ?? 'No Description',
+      amount: data['amount']?.toDouble() ?? 0.0,
+      date: (data['date'] as Timestamp).toDate(),
+      walletId: data['walletId'] ?? 'Unknown',
+      imagePath: data['imagePath'],
     );
   }
 
-  // Konversi dari model UserTransaction ke Map (Firestore)
+  // UserTransaction -> Firestore document
   Map<String, dynamic> toMap() {
     return {
-      'type': type,
-      'amount': amount,
-      'category': category,
+      'categoryId': categoryId,
       'description': description,
-      'date': date.toIso8601String(),
+      'amount': amount,
+      'date': Timestamp.fromDate(date),
+      'walletId': walletId,
+      'imagePath': imagePath, // Image path can be null
     };
   }
 }

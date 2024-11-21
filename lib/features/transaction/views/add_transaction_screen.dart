@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart'; // Untuk format tanggal
 import '../../auth/providers/auth_provider.dart';
-import '../providers/transaction_provider.dart';
+import '../service_providers/transaction_service_providers.dart';
+import 'category_selection_screen.dart';
+import 'wallet_selection_screen.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
   const AddTransactionScreen({super.key});
@@ -15,20 +18,26 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
-  String _selectedType = 'Income';
-  String? _selectedCategory;
+  String? _selectedCategoryId;
+  String? _selectedCategoryName;
+  String? _selectedCategoryType;
+  String? _selectedWallet;
   DateTime _selectedDate = DateTime.now();
+  bool _includeImage = false;
+  String? _imagePath;
 
   Future<void> _submitTransaction(String uid) async {
     if (_formKey.currentState!.validate()) {
-      final transactionService = ref.read(transactionServiceProvider);
+      final transactionService = ref.read(createTransactionProvider);
       await transactionService.createTransaction(
         uid: uid,
-        type: _selectedType,
+        type: _selectedCategoryType!,
         amount: double.parse(_amountController.text),
-        category: _selectedCategory!,
+        categoryId: _selectedCategoryId!,
         description: _descriptionController.text,
         date: _selectedDate,
+        wallet: _selectedWallet!,
+        imagePath: _imagePath,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -52,25 +61,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ChoiceChip(
-                      label: const Text('Income'),
-                      selected: _selectedType == 'Income',
-                      onSelected: (_) => setState(() {
-                        _selectedType = 'Income';
-                      }),
-                    ),
-                    ChoiceChip(
-                      label: const Text('Expense'),
-                      selected: _selectedType == 'Expense',
-                      onSelected: (_) => setState(() {
-                        _selectedType = 'Expense';
-                      }),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _amountController,
@@ -90,39 +80,45 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedCategory,
-                  onChanged: (value) =>
-                      setState(() => _selectedCategory = value),
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Food',
-                      child: Text('Food'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Transport',
-                      child: Text('Transport'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Shopping',
-                      child: Text('Shopping'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Health',
-                      child: Text('Health'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Entertainment',
-                      child: Text('Entertainment'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Others',
-                      child: Text('Others'),
-                    ),
-                  ],
+                ListTile(
+                  title: const Text('Category'),
+                  subtitle: Text(_selectedCategoryName ?? 'Select a category'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final selectedCategory =
+                        await Navigator.push<Map<String, String>?>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CategorySelectionScreen(),
+                      ),
+                    );
+                    if (selectedCategory != null) {
+                      setState(() {
+                        _selectedCategoryId = selectedCategory['id'];
+                        _selectedCategoryName = selectedCategory['name'];
+                        _selectedCategoryType = selectedCategory['type'];
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  title: const Text('Wallet'),
+                  subtitle: Text(_selectedWallet ?? 'Select a wallet'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final selectedWallet = await Navigator.push<String?>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const WalletSelectionScreen(),
+                      ),
+                    );
+                    if (selectedWallet != null) {
+                      setState(() {
+                        _selectedWallet = selectedWallet;
+                      });
+                    }
+                  },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -136,7 +132,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Date: ${_selectedDate.toLocal()}'.split(' ')[0],
+                      'Date: ${DateFormat('EEEE, dd/MM/yyyy').format(_selectedDate)}',
                       style: const TextStyle(fontSize: 16),
                     ),
                     ElevatedButton(
@@ -157,6 +153,32 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _includeImage,
+                      onChanged: (value) =>
+                          setState(() => _includeImage = value!),
+                    ),
+                    const Text('Include Attachment'),
+                  ],
+                ),
+                if (_includeImage)
+                  TextFormField(
+                    onTap: () async {
+                      // Simulate image picking
+                      // Replace this with your image picker logic
+                      setState(() {
+                        _imagePath = 'path/to/image.jpg';
+                      });
+                    },
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Image Path',
+                      prefixIcon: Icon(Icons.image),
+                    ),
+                  ),
                 const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,

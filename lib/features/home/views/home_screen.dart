@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smartmoney/features/category/views/category_screen.dart';
-import '../../profile/views/profile_screen.dart';
+import 'package:smartmoney/features/transaction/views/add_transaction_screen.dart';
+import '../../account/views/profile_screen.dart';
+import '../../category/views/category_screen.dart';
 import '../../transaction/views/transaction_screen.dart';
 import '../../product/view/product_screen.dart';
 import '../providers/bottom_navbar_provider.dart';
@@ -43,8 +44,8 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
       MenuItem(
-        appBar: null,
-        body: const Scaffold(),
+        appBar: null, // Tidak perlu appBar karena ini untuk navigasi khusus
+        body: const SizedBox.shrink(), // Tidak ada konten di sini
         bottomNavigationBarItem: BottomNavigationBarItem(
           icon: Container(
             width: 50,
@@ -70,7 +71,7 @@ class HomeScreen extends ConsumerWidget {
       ),
       MenuItem(
         appBar: AppBar(
-          title: const Text('Profile'),
+          title: const Text('Account'),
         ),
         body: const BodyProfileScreen(),
         bottomNavigationBarItem: const BottomNavigationBarItem(
@@ -88,8 +89,16 @@ class HomeScreen extends ConsumerWidget {
         currentIndex: currentIndex,
         onTap: (index) {
           if (index == 2) {
-            print('Add new item');
+            // Navigasi ke layar AddTransactionScreen secara full screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AddTransactionScreen(),
+                fullscreenDialog: true, // Membuat layar menjadi full screen
+              ),
+            );
           } else {
+            // Mengubah indeks navigasi bawah
             ref.read(bottomNavIndexProvider.notifier).state = index;
           }
         },

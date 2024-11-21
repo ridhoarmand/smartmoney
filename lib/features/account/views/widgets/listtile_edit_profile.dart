@@ -80,7 +80,7 @@ class ListTileEditProfil extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error navigating to edit profile: $e'),
+            content: Text('Error navigating to edit account: $e'),
             backgroundColor: Colors.red,
           ),
         );

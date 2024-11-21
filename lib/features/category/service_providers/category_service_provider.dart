@@ -1,58 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// MODEL
-class Category {
-  final String id;
-  final String name;
-  final String type; // 'income' or 'expense'
-  final IconData icon;
-  final String? parentId; // null if no parent
-
-  Category({
-    required this.id,
-    required this.name,
-    required this.type,
-    required this.icon,
-    this.parentId,
-  });
-
-  Category copyWith({
-    String? id,
-    String? name,
-    String? type,
-    IconData? icon,
-    String? parentId,
-  }) {
-    return Category(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      type: type ?? this.type,
-      icon: icon ?? this.icon,
-      parentId: parentId ?? this.parentId,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'type': type,
-      'icon': icon.codePoint,
-      'parentId': parentId,
-    };
-  }
-
-  static Category fromMap(Map<String, dynamic> map, String id) {
-    return Category(
-      id: id,
-      name: map['name'],
-      type: map['type'],
-      icon: IconData(map['icon'], fontFamily: 'MaterialIcons'),
-      parentId: map['parentId'],
-    );
-  }
-}
+import '../models/category.dart';
 
 // PROVIDER
 final categoryProvider =
@@ -93,3 +42,21 @@ class CategoryNotifier extends StateNotifier<List<Category>> {
     state = state.where((category) => category.id != id).toList();
   }
 }
+
+// PROVIDER untuk mengambil stream kategori berdasarkan UID pengguna
+final categoryStreamProvider =
+    StreamProvider.family<List<Category>, String>((ref, uid) {
+  final firestore = FirebaseFirestore.instance;
+
+  return firestore
+      .collection('users') // Koleksi users
+      .doc(uid) // Berdasarkan UID pengguna
+      .collection('categories') // Koleksi kategori pengguna
+      .snapshots()
+      .map((snapshot) {
+    return snapshot.docs.map((doc) {
+      return Category.fromFirestore(
+          doc.data()..['id'] = doc.id); // Add 'id' from document ID
+    }).toList();
+  });
+});

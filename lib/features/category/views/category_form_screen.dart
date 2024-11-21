@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../category_model_service_provider.dart';
+import '../models/category.dart';
+import '../service_providers/category_service_provider.dart';
 import 'parent_category_selection_screen.dart';
 
 class CategoryFormScreen extends ConsumerStatefulWidget {

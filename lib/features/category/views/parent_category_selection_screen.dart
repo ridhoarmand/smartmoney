@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../category_model_service_provider.dart';
+import '../service_providers/category_service_provider.dart';
 
 class ParentCategorySelectionScreen extends ConsumerWidget {
   final String uid;

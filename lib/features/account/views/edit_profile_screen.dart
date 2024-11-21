@@ -71,7 +71,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           onError: (error) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Failed to update profile: $error'),
+                content: Text('Failed to update account: $error'),
                 backgroundColor: Colors.red,
               ),
             );
