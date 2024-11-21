@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smartmoney/features/category/views/category_screen.dart';
 import '../../profile/views/profile_screen.dart';
 import '../../transaction/views/transaction_screen.dart';
 import '../../product/view/product_screen.dart';
@@ -61,10 +62,10 @@ class HomeScreen extends ConsumerWidget {
       ),
       MenuItem(
         appBar: null,
-        body: const Scaffold(),
+        body: const CategoryScreen(),
         bottomNavigationBarItem: const BottomNavigationBarItem(
           icon: Icon(Icons.pie_chart),
-          label: 'Budgets',
+          label: 'Categories',
         ),
       ),
       MenuItem(
