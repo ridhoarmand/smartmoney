@@ -81,15 +81,6 @@ class AppRouter {
                       return FadeTransition(opacity: animation, child: child);
                     },
                   ),
-                  routes: [
-                    GoRoute(
-                      path: 'add',
-                      builder: (context, state) {
-                        final uid = state.extra as String;
-                        return CategoryFormScreen(uid: uid);
-                      },
-                    ),
-                  ],
                 ),
                 GoRoute(
                   path: '/account',

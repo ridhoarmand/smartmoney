@@ -5,18 +5,22 @@ import '../service_providers/category_service_provider.dart';
 class ParentCategorySelectionScreen extends ConsumerWidget {
   final String uid;
   final String? currentCategoryId;
+  final String currentCategoryType;
 
   const ParentCategorySelectionScreen({
     super.key,
     required this.uid,
     this.currentCategoryId,
+    required this.currentCategoryType,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Filter categories to show only root categories
     final categories = ref.watch(categoryProvider).where((category) {
-      return category.parentId == null && category.id != currentCategoryId;
+      return category.parentId == null &&
+          category.id != currentCategoryId &&
+          category.type == currentCategoryType;
     }).toList();
 
     return Scaffold(

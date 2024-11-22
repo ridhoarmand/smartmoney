@@ -8,10 +8,10 @@ class WalletSelectionScreen extends ConsumerStatefulWidget {
   const WalletSelectionScreen({super.key});
 
   @override
-  _WalletSelectionScreenState createState() => _WalletSelectionScreenState();
+  WalletSelectionScreenState createState() => WalletSelectionScreenState();
 }
 
-class _WalletSelectionScreenState extends ConsumerState<WalletSelectionScreen> {
+class WalletSelectionScreenState extends ConsumerState<WalletSelectionScreen> {
   late final String uid;
 
   @override

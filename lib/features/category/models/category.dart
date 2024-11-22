@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 class Category {
   final String id;
   final String name;
-  final String type; // 'income' or 'expense'
+  final String type;
   final IconData icon;
-  final String? parentId; // null if no parent
+  final String? parentId;
 
   Category({
     required this.id,

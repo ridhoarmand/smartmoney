@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smartmoney/features/transaction/views/add_transaction_screen.dart';
 import '../../account/views/account_screen.dart';
 import '../../category/views/category_screen.dart';
 import '../../transaction/views/transaction_screen.dart';

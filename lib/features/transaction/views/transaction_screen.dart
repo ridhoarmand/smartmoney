@@ -65,7 +65,7 @@ class TransactionScreen extends ConsumerWidget {
                   return ListTile(
                     leading: CircleAvatar(
                       backgroundColor:
-                          category.type == 'income' ? Colors.green : Colors.red,
+                          category.type == 'Income' ? Colors.green : Colors.red,
                       child: Icon(
                         category.icon,
                         color: Colors.white,
@@ -74,9 +74,9 @@ class TransactionScreen extends ConsumerWidget {
                     title: Text(category.name),
                     subtitle: Text(transaction.description),
                     trailing: Text(
-                      '${category.type == 'income' ? '+' : '-'} ${transaction.amount}',
+                      '${category.type == 'Income' ? '+' : '-'} ${transaction.amount}',
                       style: TextStyle(
-                        color: category.type == 'income'
+                        color: category.type == 'Income'
                             ? Colors.green
                             : Colors.red,
                         fontWeight: FontWeight.bold,
