@@ -84,10 +84,6 @@ class TransactionScreen extends ConsumerWidget {
                     ),
                     onTap: () {
                       // Handle onTap for imagePath or other functionality
-                      if (transaction.imagePath != null) {
-                        // Do something with the imagePath
-                        print('Image path: ${transaction.imagePath}');
-                      }
                     },
                   );
                 },

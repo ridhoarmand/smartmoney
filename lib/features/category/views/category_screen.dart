@@ -47,8 +47,8 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.arrow_upward), text: 'Income'),
-            Tab(icon: Icon(Icons.arrow_downward), text: 'Expense'),
+            Tab(icon: Icon(Icons.arrow_downward), text: 'Income'),
+            Tab(icon: Icon(Icons.arrow_upward), text: 'Expense'),
           ],
         ),
       ),

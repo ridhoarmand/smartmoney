@@ -7,15 +7,15 @@ import 'widgets/listtile_edit_profile.dart';
 import 'widgets/listtile_signout.dart';
 import 'widgets/listtile_wallet.dart';
 
-// Widget untuk AppBar di halaman Profile
-class AppbarProfileScreen extends StatelessWidget
+// Widget untuk AppBar di halaman Account
+class AppbarAccountScreen extends StatelessWidget
     implements PreferredSizeWidget {
-  const AppbarProfileScreen({super.key});
+  const AppbarAccountScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text('Profile'),
+      title: const Text('Account'),
     );
   }
 
@@ -23,9 +23,9 @@ class AppbarProfileScreen extends StatelessWidget
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
-// Widget untuk Body di halaman Profile
-class BodyProfileScreen extends ConsumerWidget {
-  const BodyProfileScreen({super.key});
+// Widget untuk Body di halaman Account
+class BodyAccountScreen extends ConsumerWidget {
+  const BodyAccountScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
