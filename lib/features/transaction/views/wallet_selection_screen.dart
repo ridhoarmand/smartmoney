@@ -49,7 +49,10 @@ class WalletSelectionScreenState extends ConsumerState<WalletSelectionScreen> {
           leading: Icon(wallet.icon),
           title: Text(wallet.name),
           onTap: () {
-            Navigator.pop(context, wallet.name); // Return the wallet name
+            Navigator.pop(context, {
+              'id': wallet.id, // Kirim ID dompet
+              'name': wallet.name, // Kirim nama dompet
+            }); // Return the wallet name
           },
         );
       },
