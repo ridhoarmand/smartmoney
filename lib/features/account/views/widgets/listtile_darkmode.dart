@@ -11,7 +11,7 @@ class ListTileDarkMode extends StatelessWidget {
       title: const Text('Dark Mode'),
       trailing: const Icon(Icons.arrow_forward_ios),
       onTap: () {
-        context.push('/darkmode');
+        context.push('/setting/darkmode');
       },
     );
   }

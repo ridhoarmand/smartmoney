@@ -36,7 +36,7 @@ class CreateTransaction {
     required String description,
     required DateTime date,
     required String type,
-    required String wallet,
+    required String walletId,
     String? imagePath, // Optional image path
   }) async {
     final transaction = UserTransaction(
@@ -44,7 +44,7 @@ class CreateTransaction {
       description: description,
       amount: amount,
       date: date,
-      walletId: wallet,
+      walletId: walletId,
       imagePath: imagePath, // Image path is optional
     );
 

@@ -9,10 +9,10 @@ class CategoryScreen extends ConsumerStatefulWidget {
   const CategoryScreen({super.key});
 
   @override
-  _CategoryScreenState createState() => _CategoryScreenState();
+  CategoryScreenState createState() => CategoryScreenState();
 }
 
-class _CategoryScreenState extends ConsumerState<CategoryScreen>
+class CategoryScreenState extends ConsumerState<CategoryScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   late final String uid;
@@ -47,16 +47,16 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.arrow_upward), text: 'Income'),
-            Tab(icon: Icon(Icons.arrow_downward), text: 'Expense'),
+            Tab(icon: Icon(Icons.arrow_downward), text: 'Income'),
+            Tab(icon: Icon(Icons.arrow_upward), text: 'Expense'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildCategoryView(rootCategories, 'income'),
-          _buildCategoryView(rootCategories, 'expense'),
+          _buildCategoryView(rootCategories, 'Income'),
+          _buildCategoryView(rootCategories, 'Expense'),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -64,7 +64,9 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => CategoryFormScreen(uid: uid),
+              builder: (_) => CategoryFormScreen(
+                  uid: uid,
+                  type: _tabController.index == 0 ? 'Income' : 'Expense'),
             ),
           );
         },
@@ -97,7 +99,13 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListTile(
-              leading: Icon(root.icon), // Use the icon from the category model
+              leading: CircleAvatar(
+                backgroundColor: type == 'Income' ? Colors.green : Colors.red,
+                child: Icon(
+                  root.icon,
+                  color: Colors.white,
+                ),
+              ),
               title: Text(root.name,
                   style: const TextStyle(fontWeight: FontWeight.bold)),
               trailing: const Icon(Icons.chevron_right),
@@ -105,16 +113,15 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen>
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) =>
-                        CategoryFormScreen(uid: uid, category: root),
+                    builder: (_) => CategoryFormScreen(
+                        uid: uid, category: root, type: type),
                   ),
                 );
               },
             ),
             if (children.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(
-                    left: 20.0), // Indent child categories
+                padding: const EdgeInsets.only(left: 20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children:
@@ -132,18 +139,28 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen>
       leading: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.subdirectory_arrow_right, color: Colors.grey),
+          const Icon(Icons.subdirectory_arrow_right),
           const SizedBox(width: 8),
-          Icon(child.icon, color: Colors.grey),
+          CircleAvatar(
+            backgroundColor: child.type == 'Income' ? Colors.green : Colors.red,
+            child: Icon(
+              child.icon,
+              color: Colors.white,
+            ),
+          ),
         ],
       ),
       title: Text(child.name),
-      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+      trailing: const Icon(Icons.chevron_right),
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => CategoryFormScreen(uid: uid, category: child),
+            builder: (_) => CategoryFormScreen(
+              uid: uid,
+              category: child,
+              type: child.type,
+            ),
           ),
         );
       },

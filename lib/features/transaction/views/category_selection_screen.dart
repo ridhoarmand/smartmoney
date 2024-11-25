@@ -9,11 +9,10 @@ class CategorySelectionScreen extends ConsumerStatefulWidget {
   const CategorySelectionScreen({super.key});
 
   @override
-  _CategorySelectionScreenState createState() =>
-      _CategorySelectionScreenState();
+  CategorySelectionScreenState createState() => CategorySelectionScreenState();
 }
 
-class _CategorySelectionScreenState
+class CategorySelectionScreenState
     extends ConsumerState<CategorySelectionScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
@@ -53,8 +52,8 @@ class _CategorySelectionScreenState
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildCategoryView(categories, 'income'),
-          _buildCategoryView(categories, 'expense'),
+          _buildCategoryView(categories, 'Income'),
+          _buildCategoryView(categories, 'Expense'),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -62,7 +61,9 @@ class _CategorySelectionScreenState
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => CategoryFormScreen(uid: uid),
+              builder: (_) => CategoryFormScreen(
+                  uid: uid,
+                  type: _tabController.index == 0 ? 'Income' : 'Expense'),
             ),
           );
         },

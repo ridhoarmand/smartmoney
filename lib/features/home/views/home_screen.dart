@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smartmoney/features/transaction/views/add_transaction_screen.dart';
-import '../../account/views/profile_screen.dart';
+import 'package:go_router/go_router.dart';
+import '../../account/views/account_screen.dart';
 import '../../category/views/category_screen.dart';
 import '../../transaction/views/transaction_screen.dart';
 import '../../product/view/product_screen.dart';
@@ -11,43 +11,50 @@ class MenuItem {
   final PreferredSizeWidget? appBar;
   final Widget body;
   final BottomNavigationBarItem bottomNavigationBarItem;
+  final String route;
 
   MenuItem({
     required this.appBar,
     required this.body,
     required this.bottomNavigationBarItem,
+    required this.route,
   });
 }
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final currentIndex = ref.watch(bottomNavIndexProvider);
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
 
-    final List<MenuItem> menus = [
-      MenuItem(
-        appBar: null,
-        body: ProductScreen(),
-        bottomNavigationBarItem: const BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final List<MenuItem> menus = [
+    MenuItem(
+      appBar: null,
+      body: ProductScreen(),
+      route: '/home',
+      bottomNavigationBarItem: const BottomNavigationBarItem(
+        icon: Icon(Icons.home),
+        label: 'Home',
       ),
-      MenuItem(
-        appBar: null,
-        body: const TransactionScreen(),
-        bottomNavigationBarItem: const BottomNavigationBarItem(
-          icon: Icon(Icons.receipt),
-          label: 'Transactions',
-        ),
+    ),
+    MenuItem(
+      appBar: null,
+      body: const TransactionScreen(),
+      route: '/transactions',
+      bottomNavigationBarItem: const BottomNavigationBarItem(
+        icon: Icon(Icons.receipt),
+        label: 'Transactions',
       ),
-      MenuItem(
-        appBar: null, // Tidak perlu appBar karena ini untuk navigasi khusus
-        body: const SizedBox.shrink(), // Tidak ada konten di sini
-        bottomNavigationBarItem: BottomNavigationBarItem(
-          icon: Container(
+    ),
+    MenuItem(
+      appBar: null,
+      body: const SizedBox.shrink(),
+      route: '/add-transaction',
+      bottomNavigationBarItem: BottomNavigationBarItem(
+        icon: Builder(
+          builder: (context) => Container(
             width: 50,
             height: 50,
             decoration: BoxDecoration(
@@ -58,28 +65,51 @@ class HomeScreen extends ConsumerWidget {
               child: Icon(Icons.add, color: Colors.white),
             ),
           ),
-          label: '',
         ),
+        label: '',
       ),
-      MenuItem(
-        appBar: null,
-        body: const CategoryScreen(),
-        bottomNavigationBarItem: const BottomNavigationBarItem(
-          icon: Icon(Icons.pie_chart),
-          label: 'Categories',
-        ),
+    ),
+    MenuItem(
+      appBar: null,
+      body: const CategoryScreen(),
+      route: '/categories',
+      bottomNavigationBarItem: const BottomNavigationBarItem(
+        icon: Icon(Icons.pie_chart),
+        label: 'Categories',
       ),
-      MenuItem(
-        appBar: AppBar(
-          title: const Text('Account'),
-        ),
-        body: const BodyProfileScreen(),
-        bottomNavigationBarItem: const BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: 'Account',
-        ),
+    ),
+    MenuItem(
+      appBar: const AppbarAccountScreen(),
+      body: const BodyAccountScreen(),
+      route: '/account',
+      bottomNavigationBarItem: const BottomNavigationBarItem(
+        icon: Icon(Icons.person),
+        label: 'Account',
       ),
-    ];
+    ),
+  ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    Future.microtask(() {
+      _updateIndexBasedOnRoute();
+    });
+  }
+
+  void _updateIndexBasedOnRoute() {
+    if (!mounted) return;
+
+    final location = GoRouterState.of(context).uri.toString();
+    final index = menus.indexWhere((menu) => menu.route == location);
+    if (index != -1 && index != ref.read(bottomNavIndexProvider)) {
+      ref.read(bottomNavIndexProvider.notifier).state = index;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentIndex = ref.watch(bottomNavIndexProvider);
 
     return Scaffold(
       appBar: menus[currentIndex].appBar,
@@ -89,17 +119,10 @@ class HomeScreen extends ConsumerWidget {
         currentIndex: currentIndex,
         onTap: (index) {
           if (index == 2) {
-            // Navigasi ke layar AddTransactionScreen secara full screen
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const AddTransactionScreen(),
-                fullscreenDialog: true, // Membuat layar menjadi full screen
-              ),
-            );
+            context.push('/add-transaction');
           } else {
-            // Mengubah indeks navigasi bawah
             ref.read(bottomNavIndexProvider.notifier).state = index;
+            context.go(menus[index].route);
           }
         },
         items: menus.map((menu) => menu.bottomNavigationBarItem).toList(),

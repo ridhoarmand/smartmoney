@@ -49,9 +49,7 @@ final categoryStreamProvider =
   final firestore = FirebaseFirestore.instance;
 
   return firestore
-      .collection('users') // Koleksi users
-      .doc(uid) // Berdasarkan UID pengguna
-      .collection('categories') // Koleksi kategori pengguna
+      .collection('users/$uid/categories')
       .snapshots()
       .map((snapshot) {
     return snapshot.docs.map((doc) {

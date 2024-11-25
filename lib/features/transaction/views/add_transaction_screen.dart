@@ -5,6 +5,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../service_providers/transaction_service_providers.dart';
 import 'category_selection_screen.dart';
 import 'wallet_selection_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
   const AddTransactionScreen({super.key});
@@ -22,31 +23,70 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   String? _selectedCategoryName;
   String? _selectedCategoryType;
   String? _selectedWallet;
+  String? _selectedWalletId;
   DateTime _selectedDate = DateTime.now();
   bool _includeImage = false;
   String? _imagePath;
 
   Future<void> _submitTransaction(String uid) async {
-    if (_formKey.currentState!.validate()) {
-      final transactionService = ref.read(createTransactionProvider);
+  if (_formKey.currentState!.validate() && _selectedCategoryType != null && _selectedWalletId != null) {
+    final transactionService = ref.read(createTransactionProvider);
+
+    try {
+      // Step 1: Ambil saldo dompet dari Firestore
+      final walletRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('wallets')
+          .doc(_selectedWalletId);
+      final walletSnapshot = await walletRef.get();
+      if (!walletSnapshot.exists) {
+        throw Exception('Selected wallet not found');
+      }
+
+      final walletData = walletSnapshot.data()!;
+      final currentBalance = walletData['balance'] as double;
+
+      // Step 2: Hitung saldo baru berdasarkan tipe transaksi
+      final amount = double.parse(_amountController.text);
+      double updatedBalance = currentBalance;
+      if (_selectedCategoryType == 'Income') {
+        updatedBalance += amount; // Tambah saldo untuk income
+      } else if (_selectedCategoryType == 'Expense') {
+        updatedBalance -= amount; // Kurangi saldo untuk expense
+      }
+
+      // Step 3: Simpan transaksi dan perbarui saldo dompet
       await transactionService.createTransaction(
         uid: uid,
         type: _selectedCategoryType!,
-        amount: double.parse(_amountController.text),
+        amount: amount,
         categoryId: _selectedCategoryId!,
         description: _descriptionController.text,
         date: _selectedDate,
-        wallet: _selectedWallet!,
+        walletId: _selectedWalletId!,
         imagePath: _imagePath,
       );
+
+      await walletRef.update({'balance': updatedBalance}); // Update saldo
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Transaction added successfully!')),
       );
 
       Navigator.of(context).pop();
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add transaction: $error')),
+      );
     }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please complete all required fields.')),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +147,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   subtitle: Text(_selectedWallet ?? 'Select a wallet'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
-                    final selectedWallet = await Navigator.push<String?>(
+                    final selectedWallet = await Navigator.push<Map<String,String>?>(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const WalletSelectionScreen(),
@@ -115,7 +155,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     );
                     if (selectedWallet != null) {
                       setState(() {
-                        _selectedWallet = selectedWallet;
+                        _selectedWalletId =
+                            selectedWallet['id']; // Simpan ID dompet
+                        _selectedWallet =
+                            selectedWallet['name']; // Simpan nama dompet
                       });
                     }
                   },
