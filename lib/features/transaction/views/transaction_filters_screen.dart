@@ -14,11 +14,10 @@ class TransactionFilterScreen extends StatefulWidget {
   const TransactionFilterScreen({super.key, required this.onApplyFilter});
 
   @override
-  _TransactionFilterScreenState createState() =>
-      _TransactionFilterScreenState();
+  TransactionFilterScreenState createState() => TransactionFilterScreenState();
 }
 
-class _TransactionFilterScreenState extends State<TransactionFilterScreen> {
+class TransactionFilterScreenState extends State<TransactionFilterScreen> {
   String _selectedTimeRange = '7 Hari Terakhir';
   String _selectedTransactionType = 'Semua Transaksi';
   DateTime? _startDate;

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:smartmoney/core/router.dart';
 
 import '../providers/wallet_provider.dart';
 import 'add_wallet_screen.dart';
@@ -45,7 +44,7 @@ class WalletScreenState extends ConsumerState<WalletScreen> {
               itemBuilder: (context, index) {
                 final wallet = wallets[index];
                 final balance = NumberFormat.currency(
-                  locale: 'en_US',
+                  locale: 'id_ID',
                   symbol: wallet.currency == 'Rupiah' ? 'Rp ' : '\$',
                   decimalDigits: wallet.balance == wallet.balance.toInt()
                       ? 0

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
 import '../features/account/views/darkmode_screen.dart';
 import '../features/account/views/edit_profile_screen.dart';
@@ -9,7 +8,6 @@ import '../features/auth/views/forgot_password_screen.dart';
 import '../features/auth/views/signin_screen.dart';
 import '../features/auth/views/signup_screen.dart';
 import '../features/auth/views/splash_screen.dart';
-import '../features/category/views/category_form_screen.dart';
 import '../features/category/views/category_screen.dart';
 import '../features/home/views/home_screen.dart';
 import '../features/product/view/product_screen.dart';
@@ -18,10 +16,6 @@ import '../features/transaction/views/transaction_screen.dart';
 import '../features/wallet/views/wallet_screen.dart';
 
 class AppRouter {
-  static void configureRouter() {
-    setUrlStrategy(PathUrlStrategy());
-  }
-
   final GoRouter appRouter;
 
   AppRouter()

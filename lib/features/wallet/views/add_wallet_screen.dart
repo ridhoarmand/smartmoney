@@ -31,7 +31,8 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
     _nameController = TextEditingController(text: widget.wallet?.name ?? '');
     _balanceController = TextEditingController(
       text: widget.wallet?.balance != null
-          ? NumberFormat('#,###').format(widget.wallet!.balance)
+          ? NumberFormat.currency(locale: 'id_ID', symbol: '', decimalDigits: 2)
+              .format(widget.wallet!.balance)
           : '0',
     );
     _currency = widget.wallet?.currency ?? 'Rupiah';

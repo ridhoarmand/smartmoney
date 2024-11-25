@@ -67,7 +67,8 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                     },
                   ),
                 ),
-                const SizedBox(width: 8), // Jarak antara input dan tombol filter
+                const SizedBox(
+                    width: 8), // Jarak antara input dan tombol filter
                 // Tombol filter
                 IconButton(
                   icon: const Icon(Icons.filter_list),
@@ -135,7 +136,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
 
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundColor: category.type == 'income'
+                            backgroundColor: category.type == 'Income'
                                 ? Colors.green
                                 : Colors.red,
                             child: Icon(
@@ -146,18 +147,16 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                           title: Text(category.name),
                           subtitle: Text(transaction.description),
                           trailing: Text(
-                            '${category.type == 'income' ? '+' : '-'} ${transaction.amount}',
+                            '${category.type == 'Income' ? '+' : '-'} ${transaction.amount}',
                             style: TextStyle(
-                              color: category.type == 'income'
+                              color: category.type == 'Income'
                                   ? Colors.green
                                   : Colors.red,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           onTap: () {
-                            if (transaction.imagePath != null) {
-                              print('Image path: ${transaction.imagePath}');
-                            }
+                            // Navigasi ke halaman detail transaksi
                           },
                         );
                       },
