@@ -31,14 +31,6 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transaction List'),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.analytics),
-        //     onPressed: () {
-        //       // Aksi filter transaksi jika diperlukan
-        //     },
-        //   ),
-        // ],
       ),
       body: Column(
         children: [
@@ -75,8 +67,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                     },
                   ),
                 ),
-                const SizedBox(
-                    width: 8), // Jarak antara input dan tombol filter
+                const SizedBox(width: 8), // Jarak antara input dan tombol filter
                 // Tombol filter
                 IconButton(
                   icon: const Icon(Icons.filter_list),
