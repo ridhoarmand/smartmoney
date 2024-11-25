@@ -53,111 +53,119 @@ class _UpdateTransactionScreenState
   }
 
   Future<void> _updateTransaction(String uid) async {
-  if (_formKey.currentState!.validate() &&
-      _selectedCategoryType != null &&
-      _selectedWalletId != null) {
-    final transactionService = ref.read(updateTransactionProvider);
+    if (_formKey.currentState!.validate() &&
+        _selectedCategoryType != null &&
+        _selectedWalletId != null) {
+      final transactionService = ref.read(updateTransactionProvider);
 
-    try {
-      final walletCollection = FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('wallets');
+      try {
+        final walletCollection = FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .collection('wallets');
 
-      final oldWalletRef = walletCollection.doc(widget.transaction.walletId);
-      final newWalletRef = walletCollection.doc(_selectedWalletId);
+        final oldWalletRef = walletCollection.doc(widget.transaction.walletId);
+        final newWalletRef = walletCollection.doc(_selectedWalletId);
 
-      // Ambil data dompet lama
-      final oldWalletSnapshot = await oldWalletRef.get();
-      if (!oldWalletSnapshot.exists) {
-        throw Exception('Old wallet not found');
-      }
-      final oldWalletData = oldWalletSnapshot.data()!;
-      double oldWalletBalance = oldWalletData['balance'] as double;
-
-      // Ambil data dompet baru (jika berbeda)
-      double newWalletBalance = 0.0;
-      if (_selectedWalletId != widget.transaction.walletId) {
-        final newWalletSnapshot = await newWalletRef.get();
-        if (!newWalletSnapshot.exists) {
-          throw Exception('New wallet not found');
+        // Ambil data dompet lama
+        final oldWalletSnapshot = await oldWalletRef.get();
+        if (!oldWalletSnapshot.exists) {
+          throw Exception('Old wallet not found');
         }
-        final newWalletData = newWalletSnapshot.data()!;
-        newWalletBalance = newWalletData['balance'] as double;
-      }
+        final oldWalletData = oldWalletSnapshot.data()!;
+        double oldWalletBalance = oldWalletData['balance'] as double;
 
-      // Nominal lama dan baru
-      final oldAmount = widget.transaction.amount;
-      final newAmount = double.parse(_amountController.text);
+        // Ambil data dompet baru (jika berbeda)
+        double newWalletBalance = 0.0;
+        if (_selectedWalletId != widget.transaction.walletId) {
+          final newWalletSnapshot = await newWalletRef.get();
+          if (!newWalletSnapshot.exists) {
+            throw Exception('New wallet not found');
+          }
+          final newWalletData = newWalletSnapshot.data()!;
+          newWalletBalance = newWalletData['balance'] as double;
+        }
 
-      // Update saldo dompet lama jika wallet berubah
-      if (_selectedWalletId != widget.transaction.walletId) {
-        if (widget.transaction.categoryType == 'Income') {
-          oldWalletBalance -= oldAmount; // Kembalikan saldo lama jika income
+        // Nominal lama dan baru
+        final oldAmount = widget.transaction.amount;
+        final newAmount = double.parse(_amountController.text);
+
+        // Update saldo dompet lama jika wallet berubah
+        if (_selectedWalletId != widget.transaction.walletId) {
+          if (widget.transaction.categoryType == 'Income') {
+            oldWalletBalance -= oldAmount; // Kembalikan saldo lama jika income
+          } else {
+            oldWalletBalance += oldAmount; // Tambahkan saldo lama jika expense
+          }
+          await oldWalletRef.update({'balance': oldWalletBalance});
+        }
+
+        // Update saldo dompet baru
+        if (_selectedWalletId != widget.transaction.walletId) {
+          if (_selectedCategoryType == 'Income') {
+            newWalletBalance += newAmount; // Tambahkan saldo baru jika income
+          } else {
+            newWalletBalance -= newAmount; // Kurangi saldo baru jika expense
+          }
+          await newWalletRef.update({'balance': newWalletBalance});
         } else {
-          oldWalletBalance += oldAmount; // Tambahkan saldo lama jika expense
+          // Jika wallet sama, langsung update saldo
+          double balanceAdjustment = newAmount - oldAmount;
+          if (_selectedCategoryType == 'Income') {
+            oldWalletBalance += balanceAdjustment;
+          } else {
+            oldWalletBalance -= balanceAdjustment;
+          }
+          await oldWalletRef.update({'balance': oldWalletBalance});
         }
-        await oldWalletRef.update({'balance': oldWalletBalance});
+
+        // Simpan perubahan transaksi
+        await transactionService.updateTransaction(
+          uid: uid,
+          transactionId: widget.transactionId,
+          type: _selectedCategoryType!,
+          amount: newAmount,
+          categoryId: _selectedCategoryId!,
+          categoryName: _selectedCategoryName!,
+          categoryType: _selectedCategoryType!,
+          description: _descriptionController.text,
+          date: _selectedDate,
+          walletId: _selectedWalletId!,
+          walletName: _selectedWallet!,
+          imagePath: _imagePath,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Transaction updated successfully!')),
+        );
+        Navigator.of(context).pop();
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update transaction: $error')),
+        );
       }
-
-      // Update saldo dompet baru
-      if (_selectedWalletId != widget.transaction.walletId) {
-        if (_selectedCategoryType == 'Income') {
-          newWalletBalance += newAmount; // Tambahkan saldo baru jika income
-        } else {
-          newWalletBalance -= newAmount; // Kurangi saldo baru jika expense
-        }
-        await newWalletRef.update({'balance': newWalletBalance});
-      } else {
-        // Jika wallet sama, langsung update saldo
-        double balanceAdjustment = newAmount - oldAmount;
-        if (_selectedCategoryType == 'Income') {
-          oldWalletBalance += balanceAdjustment;
-        } else {
-          oldWalletBalance -= balanceAdjustment;
-        }
-        await oldWalletRef.update({'balance': oldWalletBalance});
-      }
-
-      // Simpan perubahan transaksi
-      await transactionService.updateTransaction(
-        uid: uid,
-        transactionId: widget.transactionId,
-        type: _selectedCategoryType!,
-        amount: newAmount,
-        categoryId: _selectedCategoryId!,
-        categoryName: _selectedCategoryName!,
-        categoryType: _selectedCategoryType!,
-        description: _descriptionController.text,
-        date: _selectedDate,
-        walletId: _selectedWalletId!,
-        walletName: _selectedWallet!,
-        imagePath: _imagePath,
-      );
-
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Transaction updated successfully!')),
-      );
-      Navigator.of(context).pop();
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update transaction: $error')),
+        const SnackBar(content: Text('Please complete all required fields.')),
       );
     }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Please complete all required fields.')),
-    );
   }
-}
 
-
+  @override
   @override
   Widget build(BuildContext context) {
     final uid = ref.watch(authRepositoryProvider).currentUser!.uid;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Update Transaction')),
+      appBar: AppBar(
+        title: const Text('Update Transaction'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: () => _confirmDelete(uid),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -269,4 +277,77 @@ class _UpdateTransactionScreenState
       ),
     );
   }
+
+  /// Konfirmasi dan hapus transaksi
+  void _confirmDelete(String uid) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Transaction'),
+        content: const Text(
+            'Are you sure you want to delete this transaction?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await _deleteTransaction(uid);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Logika hapus transaksi
+  Future<void> _deleteTransaction(String uid) async {
+  final deleteTransaction = ref.read(deleteTransactionProvider);
+
+  try {
+    // Ambil data dompet dari Firestore
+    final walletRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('wallets')
+        .doc(_selectedWalletId);
+    final walletSnapshot = await walletRef.get();
+
+    if (!walletSnapshot.exists) {
+      throw Exception('Wallet not found');
+    }
+
+    final walletData = walletSnapshot.data()!;
+    final currentBalance = walletData['balance'] as double;
+
+    // Hitung saldo baru berdasarkan jenis transaksi
+    final isIncome = _selectedCategoryType == 'Income';
+    final updatedBalance = isIncome
+        ? currentBalance - widget.transaction.amount
+        : currentBalance + widget.transaction.amount;
+
+    // Perbarui saldo dompet
+    await walletRef.update({'balance': updatedBalance});
+
+    // Hapus transaksi
+    await deleteTransaction.deleteTransaction(
+      uid: uid,
+      transactionId: widget.transactionId,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Transaction deleted successfully!')),
+    );
+
+    Navigator.of(context).pop(); // Kembali ke halaman sebelumnya
+  } catch (error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to delete transaction: $error')),
+    );
+  }
+}
+
 }
