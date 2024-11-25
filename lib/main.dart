@@ -36,6 +36,7 @@ class MyApp extends ConsumerWidget {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           routerConfig: router,
+          debugShowCheckedModeBanner: false,
         );
       },
       loading: () => const Center(
