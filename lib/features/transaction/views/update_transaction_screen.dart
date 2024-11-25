@@ -1,41 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart'; // Untuk format tanggal
+import 'package:intl/intl.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../service_providers/transaction_service_providers.dart';
 import 'category_selection_screen.dart';
 import 'wallet_selection_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../transaction/models/user_transaction_model.dart';
 
-class AddTransactionScreen extends ConsumerStatefulWidget {
-  const AddTransactionScreen({super.key});
+class UpdateTransactionScreen extends ConsumerStatefulWidget {
+  final String transactionId;
+  final UserTransaction transaction;
+
+  const UpdateTransactionScreen({
+    super.key,
+    required this.transactionId,
+    required this.transaction,
+  });
 
   @override
-  ConsumerState<AddTransactionScreen> createState() =>
-      _AddTransactionScreenState();
+  ConsumerState<UpdateTransactionScreen> createState() =>
+      _UpdateTransactionScreenState();
 }
 
-class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
+class _UpdateTransactionScreenState
+    extends ConsumerState<UpdateTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  late TextEditingController _amountController;
+  late TextEditingController _descriptionController;
   String? _selectedCategoryId;
   String? _selectedCategoryName;
   String? _selectedCategoryType;
   String? _selectedWallet;
   String? _selectedWalletId;
-  DateTime _selectedDate = DateTime.now();
-  bool _includeImage = false;
+  late DateTime _selectedDate;
   String? _imagePath;
 
-  Future<void> _submitTransaction(String uid) async {
+  @override
+  void initState() {
+    super.initState();
+    _amountController =
+        TextEditingController(text: widget.transaction.amount.toString());
+    _descriptionController =
+        TextEditingController(text: widget.transaction.description);
+    _selectedCategoryId = widget.transaction.categoryId;
+    _selectedCategoryName = widget.transaction.categoryName;
+    _selectedCategoryType = widget.transaction.categoryType;
+    _selectedWallet = widget.transaction.walletName;
+    _selectedWalletId = widget.transaction.walletId;
+    _selectedDate = widget.transaction.date;
+    _imagePath = widget.transaction.imagePath;
+  }
+
+  Future<void> _updateTransaction(String uid) async {
     if (_formKey.currentState!.validate() &&
         _selectedCategoryType != null &&
         _selectedWalletId != null) {
-      final transactionService = ref.read(createTransactionProvider);
+      final transactionService = ref.read(updateTransactionProvider);
 
       try {
-        // Step 1: Ambil saldo dompet dari Firestore
+        // Ambil data dompet dari Firestore
         final walletRef = FirebaseFirestore.instance
             .collection('users')
             .doc(uid)
@@ -49,20 +73,21 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         final walletData = walletSnapshot.data()!;
         final currentBalance = walletData['balance'] as double;
 
-        // Step 2: Hitung saldo baru berdasarkan tipe transaksi
-        final amount = double.parse(_amountController.text);
-        double updatedBalance = currentBalance;
-        if (_selectedCategoryType == 'Income') {
-          updatedBalance += amount; // Tambah saldo untuk income
-        } else if (_selectedCategoryType == 'Expense') {
-          updatedBalance -= amount; // Kurangi saldo untuk expense
-        }
+        // Hitung perubahan saldo berdasarkan tipe transaksi
+        final updatedAmount = double.parse(_amountController.text);
+        final isIncome = _selectedCategoryType == 'Income';
+        double balanceAdjustment = updatedAmount -
+            widget.transaction.amount; // Selisih nilai lama dan baru
+        double updatedBalance = isIncome
+            ? currentBalance + balanceAdjustment
+            : currentBalance - balanceAdjustment;
 
-        // Step 3: Simpan transaksi dan perbarui saldo dompet
-        await transactionService.createTransaction(
+        // Simpan perubahan transaksi
+        await transactionService.updateTransaction(
           uid: uid,
+          transactionId: widget.transactionId,
           type: _selectedCategoryType!, // Tambahkan parameter 'type'
-          amount: amount,
+          amount: updatedAmount,
           categoryId: _selectedCategoryId!,
           categoryName: _selectedCategoryName!, // Tambahkan 'categoryName'
           categoryType: _selectedCategoryType!, // Tambahkan 'categoryType'
@@ -73,16 +98,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           imagePath: _imagePath,
         );
 
-        await walletRef.update({'balance': updatedBalance}); // Update saldo
+        // Update saldo dompet
+        await walletRef.update({'balance': updatedBalance});
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaction added successfully!')),
+          const SnackBar(content: Text('Transaction updated successfully!')),
         );
-
         Navigator.of(context).pop();
       } catch (error) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add transaction: $error')),
+          SnackBar(content: Text('Failed to update transaction: $error')),
         );
       }
     } else {
@@ -97,7 +122,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final uid = ref.watch(authRepositoryProvider).currentUser!.uid;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Transaction')),
+      appBar: AppBar(title: const Text('Update Transaction')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -105,7 +130,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const SizedBox(height: 16),
                 TextFormField(
                   controller: _amountController,
                   keyboardType: TextInputType.number,
@@ -130,12 +154,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     final selectedCategory =
-                        await Navigator.push<Map<String, String>?>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const CategorySelectionScreen(),
-                      ),
-                    );
+                        await Navigator.push<Map<String, String>?>(context,
+                            MaterialPageRoute(builder: (_) {
+                      return const CategorySelectionScreen();
+                    }));
                     if (selectedCategory != null) {
                       setState(() {
                         _selectedCategoryId = selectedCategory['id'];
@@ -152,18 +174,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     final selectedWallet =
-                        await Navigator.push<Map<String, String>?>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const WalletSelectionScreen(),
-                      ),
-                    );
+                        await Navigator.push<Map<String, String>?>(context,
+                            MaterialPageRoute(builder: (_) {
+                      return const WalletSelectionScreen();
+                    }));
                     if (selectedWallet != null) {
                       setState(() {
-                        _selectedWalletId =
-                            selectedWallet['id']; // Simpan ID dompet
-                        _selectedWallet =
-                            selectedWallet['name']; // Simpan nama dompet
+                        _selectedWalletId = selectedWallet['id'];
+                        _selectedWallet = selectedWallet['name'];
                       });
                     }
                   },
@@ -201,38 +219,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _includeImage,
-                      onChanged: (value) =>
-                          setState(() => _includeImage = value!),
-                    ),
-                    const Text('Include Attachment'),
-                  ],
-                ),
-                if (_includeImage)
-                  TextFormField(
-                    onTap: () async {
-                      // Simulate image picking
-                      // Replace this with your image picker logic
-                      setState(() {
-                        _imagePath = 'path/to/image.jpg';
-                      });
-                    },
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Image Path',
-                      prefixIcon: Icon(Icons.image),
-                    ),
-                  ),
                 const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => _submitTransaction(uid),
-                    child: const Text('Save Transaction'),
+                    onPressed: () => _updateTransaction(uid),
+                    child: const Text('Update Transaction'),
                   ),
                 ),
               ],

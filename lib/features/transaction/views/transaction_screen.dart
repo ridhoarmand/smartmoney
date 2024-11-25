@@ -5,6 +5,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../../category/models/category.dart';
 import '../../category/service_providers/category_service_provider.dart';
 import '../service_providers/transaction_service_providers.dart';
+import "../../transaction/views/update_transaction_screen.dart";
 
 /// **TransactionScreen**
 /// Menampilkan daftar transaksi dengan fitur pencarian yang tidak full layar.
@@ -156,7 +157,17 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                             ),
                           ),
                           onTap: () {
-                            // Navigasi ke halaman detail transaksi
+                            // Navigasi ke halaman update transaction
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UpdateTransactionScreen(
+                                  transaction: transaction,
+                                  transactionId:
+                                      transaction.id, // Pastikan ID disimpan
+                                ),
+                              ),
+                            );
                           },
                         );
                       },
