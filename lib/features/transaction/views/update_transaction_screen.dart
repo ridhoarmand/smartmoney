@@ -53,69 +53,104 @@ class _UpdateTransactionScreenState
   }
 
   Future<void> _updateTransaction(String uid) async {
-    if (_formKey.currentState!.validate() &&
-        _selectedCategoryType != null &&
-        _selectedWalletId != null) {
-      final transactionService = ref.read(updateTransactionProvider);
+  if (_formKey.currentState!.validate() &&
+      _selectedCategoryType != null &&
+      _selectedWalletId != null) {
+    final transactionService = ref.read(updateTransactionProvider);
 
-      try {
-        // Ambil data dompet dari Firestore
-        final walletRef = FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .collection('wallets')
-            .doc(_selectedWalletId);
-        final walletSnapshot = await walletRef.get();
-        if (!walletSnapshot.exists) {
-          throw Exception('Selected wallet not found');
-        }
+    try {
+      final walletCollection = FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('wallets');
 
-        final walletData = walletSnapshot.data()!;
-        final currentBalance = walletData['balance'] as double;
+      final oldWalletRef = walletCollection.doc(widget.transaction.walletId);
+      final newWalletRef = walletCollection.doc(_selectedWalletId);
 
-        // Hitung perubahan saldo berdasarkan tipe transaksi
-        final updatedAmount = double.parse(_amountController.text);
-        final isIncome = _selectedCategoryType == 'Income';
-        double balanceAdjustment = updatedAmount -
-            widget.transaction.amount; // Selisih nilai lama dan baru
-        double updatedBalance = isIncome
-            ? currentBalance + balanceAdjustment
-            : currentBalance - balanceAdjustment;
-
-        // Simpan perubahan transaksi
-        await transactionService.updateTransaction(
-          uid: uid,
-          transactionId: widget.transactionId,
-          type: _selectedCategoryType!, // Tambahkan parameter 'type'
-          amount: updatedAmount,
-          categoryId: _selectedCategoryId!,
-          categoryName: _selectedCategoryName!, // Tambahkan 'categoryName'
-          categoryType: _selectedCategoryType!, // Tambahkan 'categoryType'
-          description: _descriptionController.text,
-          date: _selectedDate,
-          walletId: _selectedWalletId!,
-          walletName: _selectedWallet!, // Tambahkan 'walletName'
-          imagePath: _imagePath,
-        );
-
-        // Update saldo dompet
-        await walletRef.update({'balance': updatedBalance});
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaction updated successfully!')),
-        );
-        Navigator.of(context).pop();
-      } catch (error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update transaction: $error')),
-        );
+      // Ambil data dompet lama
+      final oldWalletSnapshot = await oldWalletRef.get();
+      if (!oldWalletSnapshot.exists) {
+        throw Exception('Old wallet not found');
       }
-    } else {
+      final oldWalletData = oldWalletSnapshot.data()!;
+      double oldWalletBalance = oldWalletData['balance'] as double;
+
+      // Ambil data dompet baru (jika berbeda)
+      double newWalletBalance = 0.0;
+      if (_selectedWalletId != widget.transaction.walletId) {
+        final newWalletSnapshot = await newWalletRef.get();
+        if (!newWalletSnapshot.exists) {
+          throw Exception('New wallet not found');
+        }
+        final newWalletData = newWalletSnapshot.data()!;
+        newWalletBalance = newWalletData['balance'] as double;
+      }
+
+      // Nominal lama dan baru
+      final oldAmount = widget.transaction.amount;
+      final newAmount = double.parse(_amountController.text);
+
+      // Update saldo dompet lama jika wallet berubah
+      if (_selectedWalletId != widget.transaction.walletId) {
+        if (widget.transaction.categoryType == 'Income') {
+          oldWalletBalance -= oldAmount; // Kembalikan saldo lama jika income
+        } else {
+          oldWalletBalance += oldAmount; // Tambahkan saldo lama jika expense
+        }
+        await oldWalletRef.update({'balance': oldWalletBalance});
+      }
+
+      // Update saldo dompet baru
+      if (_selectedWalletId != widget.transaction.walletId) {
+        if (_selectedCategoryType == 'Income') {
+          newWalletBalance += newAmount; // Tambahkan saldo baru jika income
+        } else {
+          newWalletBalance -= newAmount; // Kurangi saldo baru jika expense
+        }
+        await newWalletRef.update({'balance': newWalletBalance});
+      } else {
+        // Jika wallet sama, langsung update saldo
+        double balanceAdjustment = newAmount - oldAmount;
+        if (_selectedCategoryType == 'Income') {
+          oldWalletBalance += balanceAdjustment;
+        } else {
+          oldWalletBalance -= balanceAdjustment;
+        }
+        await oldWalletRef.update({'balance': oldWalletBalance});
+      }
+
+      // Simpan perubahan transaksi
+      await transactionService.updateTransaction(
+        uid: uid,
+        transactionId: widget.transactionId,
+        type: _selectedCategoryType!,
+        amount: newAmount,
+        categoryId: _selectedCategoryId!,
+        categoryName: _selectedCategoryName!,
+        categoryType: _selectedCategoryType!,
+        description: _descriptionController.text,
+        date: _selectedDate,
+        walletId: _selectedWalletId!,
+        walletName: _selectedWallet!,
+        imagePath: _imagePath,
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete all required fields.')),
+        const SnackBar(content: Text('Transaction updated successfully!')),
+      );
+      Navigator.of(context).pop();
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update transaction: $error')),
       );
     }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please complete all required fields.')),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
