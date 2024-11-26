@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:collection/collection.dart';
 import 'package:smartmoney/features/transaction/views/transaction_filters_screen.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../category/models/category.dart';
 import '../../category/service_providers/category_service_provider.dart';
+import '../models/user_transaction_model.dart';
 import '../service_providers/transaction_service_providers.dart';
 import "../../transaction/views/update_transaction_screen.dart";
 
-/// **TransactionScreen**
-/// Menampilkan daftar transaksi dengan fitur pencarian yang tidak full layar.
 class TransactionScreen extends ConsumerStatefulWidget {
   const TransactionScreen({super.key});
 
@@ -19,14 +20,38 @@ class TransactionScreen extends ConsumerStatefulWidget {
 class _TransactionScreenState extends ConsumerState<TransactionScreen> {
   String _searchQuery = '';
 
+  // Helper method to format date for grouping
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+
+    if (date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day) {
+      return 'Today';
+    } else if (date.year == yesterday.year &&
+        date.month == yesterday.month &&
+        date.day == yesterday.day) {
+      return 'Yesterday';
+    } else {
+      return DateFormat('EEEE, d MMMM y').format(date);
+    }
+  }
+
+  // Helper method to filter transactions
+  bool _filterTransaction(UserTransaction transaction) {
+    final searchLower = _searchQuery.toLowerCase();
+    return transaction.categoryName.toLowerCase().contains(searchLower) ||
+        transaction.categoryType.toLowerCase().contains(searchLower) ||
+        transaction.description.toLowerCase().contains(searchLower) ||
+        transaction.amount.toString().contains(searchLower) ||
+        transaction.walletName.toLowerCase().contains(searchLower);
+  }
+
   @override
   Widget build(BuildContext context) {
     final uid = ref.watch(authRepositoryProvider).currentUser!.uid;
-
-    // Stream data transaksi dari provider
     final transactionAsyncValue = ref.watch(transactionStreamProvider(uid));
-
-    // Stream kategori dari provider
     final categoryAsyncValue = ref.watch(categoryStreamProvider(uid));
 
     return Scaffold(
@@ -35,12 +60,11 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
       ),
       body: Column(
         children: [
-          // Baris pencarian dan tombol filter
+          // Search and filter row
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                // Input pencarian
                 Expanded(
                   child: TextField(
                     decoration: InputDecoration(
@@ -54,7 +78,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                               icon: const Icon(Icons.clear),
                               onPressed: () {
                                 setState(() {
-                                  _searchQuery = ''; // Reset pencarian
+                                  _searchQuery = '';
                                 });
                               },
                             )
@@ -62,29 +86,21 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                     ),
                     onChanged: (value) {
                       setState(() {
-                        _searchQuery =
-                            value.toLowerCase(); // Simpan query pencarian
+                        _searchQuery = value;
                       });
                     },
                   ),
                 ),
-                const SizedBox(
-                    width: 8), // Jarak antara input dan tombol filter
-                // Tombol filter
+                const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.filter_list),
-                  onPressed: () async {
-                    final filterResult = await Navigator.push(
+                  onPressed: () {
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => TransactionFilterScreen(
                           onApplyFilter: (filterData) {
-                            setState(() {
-                              // Perbarui state filter di TransactionScreen
-                              var timeRange = filterData['timeRange'];
-                              var transactionType =
-                                  filterData['transactionType'];
-                            });
+                            // Implement filter logic here
                           },
                         ),
                       ),
@@ -94,7 +110,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
               ],
             ),
           ),
-          // Body dengan daftar transaksi
+          // Transactions list
           Expanded(
             child: transactionAsyncValue.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -106,12 +122,20 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                       child: Text('No transactions available.'));
                 }
 
-                // Filter transaksi berdasarkan query pencarian
-                final filteredTransactions = transactions.where((transaction) {
-                  return transaction.description
-                      .toLowerCase()
-                      .contains(_searchQuery);
-                }).toList();
+                // Filter transactions based on search query
+                final filteredTransactions =
+                    transactions.where(_filterTransaction).toList();
+
+                if (filteredTransactions.isEmpty) {
+                  return const Center(
+                      child: Text('No matching transactions found.'));
+                }
+
+                // Group transactions by date
+                final groupedTransactions = groupBy(
+                  filteredTransactions,
+                  (transaction) => _formatDate(transaction.date),
+                );
 
                 return categoryAsyncValue.when(
                   loading: () =>
@@ -120,55 +144,157 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                       Center(child: Text('Error loading categories: $error')),
                   data: (categories) {
                     return ListView.builder(
-                      itemCount: filteredTransactions.length,
+                      itemCount: groupedTransactions.length,
                       itemBuilder: (context, index) {
-                        final transaction = filteredTransactions[index];
+                        final date = groupedTransactions.keys.elementAt(index);
+                        final dateTransactions = groupedTransactions[date]!;
 
-                        // Check if categoryId is valid and find the category
-                        final category = categories.firstWhere(
-                          (cat) => cat.id == transaction.categoryId,
-                          orElse: () => Category(
-                            id: '',
-                            name: 'Uncategorized',
-                            type: 'none',
-                            icon: Icons.help,
-                          ),
-                        );
+                        // Calculate total income and expense for the date
+                        double totalIncome = 0;
+                        double totalExpense = 0;
+                        for (var transaction in dateTransactions) {
+                          if (transaction.categoryType == 'Income') {
+                            totalIncome += transaction.amount;
+                          } else {
+                            totalExpense += transaction.amount;
+                          }
+                        }
 
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: category.type == 'Income'
-                                ? Colors.green
-                                : Colors.red,
-                            child: Icon(
-                              category.icon,
-                              color: Colors.white,
-                            ),
-                          ),
-                          title: Text(category.name),
-                          subtitle: Text(transaction.description),
-                          trailing: Text(
-                            '${category.type == 'Income' ? '+' : '-'} ${transaction.amount}',
-                            style: TextStyle(
-                              color: category.type == 'Income'
-                                  ? Colors.green
-                                  : Colors.red,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          onTap: () {
-                            // Navigasi ke halaman update transaction
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => UpdateTransactionScreen(
-                                  transaction: transaction,
-                                  transactionId:
-                                      transaction.id, // Pastikan ID disimpan
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Date header with summary
+                              Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      date,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        if (totalIncome > 0)
+                                          Text(
+                                            'Income: + ${NumberFormat.currency(
+                                              locale: 'id_ID',
+                                              symbol: 'Rp ',
+                                              decimalDigits: totalIncome ==
+                                                      totalIncome.toInt()
+                                                  ? 0
+                                                  : 2,
+                                            ).format(totalIncome)}',
+                                            style: const TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        if (totalIncome > 0 && totalExpense > 0)
+                                          const Text(' • ',
+                                              style: TextStyle(fontSize: 12)),
+                                        if (totalExpense > 0)
+                                          Text(
+                                            'Expense: - ${NumberFormat.currency(
+                                              locale: 'id_ID',
+                                              symbol: 'Rp ',
+                                              decimalDigits: totalExpense ==
+                                                      totalExpense.toInt()
+                                                  ? 0
+                                                  : 2,
+                                            ).format(totalExpense)}',
+                                            style: const TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
-                            );
-                          },
+                              // Transactions list for this date
+                              ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: dateTransactions.length,
+                                itemBuilder: (context, transactionIndex) {
+                                  final transaction =
+                                      dateTransactions[transactionIndex];
+                                  final category = categories.firstWhere(
+                                    (cat) => cat.id == transaction.categoryId,
+                                    orElse: () => Category(
+                                      id: '',
+                                      name: 'Uncategorized',
+                                      type: 'none',
+                                      icon: Icons.help,
+                                    ),
+                                  );
+
+                                  return ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: category.type == 'Income'
+                                          ? Colors.green
+                                          : Colors.red,
+                                      child: Icon(
+                                        category.icon,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    title: Text(category.name),
+                                    subtitle: Text(transaction.description),
+                                    trailing: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          transaction.walletName,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                        Text(
+                                          '${category.type == 'Income' ? '+' : '-'} ${NumberFormat.currency(
+                                            locale: 'id_ID',
+                                            symbol: 'Rp ',
+                                            decimalDigits: transaction.amount ==
+                                                    transaction.amount.toInt()
+                                                ? 0
+                                                : 2,
+                                          ).format(transaction.amount)}',
+                                          style: TextStyle(
+                                            color: category.type == 'Income'
+                                                ? Colors.green
+                                                : Colors.red,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              UpdateTransactionScreen(
+                                            transaction: transaction,
+                                            transactionId: transaction.id,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         );
                       },
                     );
@@ -181,6 +307,4 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
       ),
     );
   }
-
-  void applyFilter(filterResult) {}
 }
