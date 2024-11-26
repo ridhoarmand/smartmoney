@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../account/views/account_screen.dart';
 import '../../category/views/category_screen.dart';
 import '../../transaction/views/transaction_screen.dart';
-import '../../product/view/product_screen.dart';
+import '../../dashboard/views/dashboard_screen.dart';
 import '../providers/bottom_navbar_provider.dart';
 
 class MenuItem {
@@ -32,7 +32,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final List<MenuItem> menus = [
     MenuItem(
       appBar: null,
-      body: ProductScreen(),
+      body: const DashboardScreen(),
       route: '/home',
       bottomNavigationBarItem: const BottomNavigationBarItem(
         icon: Icon(Icons.home),

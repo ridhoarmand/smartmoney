@@ -10,7 +10,7 @@ import '../features/auth/views/signup_screen.dart';
 import '../features/auth/views/splash_screen.dart';
 import '../features/category/views/category_screen.dart';
 import '../features/home/views/home_screen.dart';
-import '../features/product/view/product_screen.dart';
+import '../features/dashboard/views/dashboard_screen.dart';
 import '../features/transaction/views/add_transaction_screen.dart';
 import '../features/transaction/views/transaction_screen.dart';
 import '../features/wallet/views/wallet_screen.dart';
@@ -47,7 +47,7 @@ class AppRouter {
                   path: '/home',
                   pageBuilder: (context, state) => CustomTransitionPage(
                     key: state.pageKey,
-                    child: ProductScreen(),
+                    child: const DashboardScreen(),
                     transitionsBuilder:
                         (context, animation, secondaryAnimation, child) {
                       return FadeTransition(opacity: animation, child: child);
