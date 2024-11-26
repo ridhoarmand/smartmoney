@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../wallet/service_providers/wallet_service_provider.dart';
 import '../models/user_transaction_model.dart';
 import '../service_providers/transaction_service_providers.dart';
 import "../../transaction/views/update_transaction_screen.dart";
@@ -16,8 +17,8 @@ class TransactionScreen extends ConsumerStatefulWidget {
 
 class _TransactionScreenState extends ConsumerState<TransactionScreen> {
   String _searchQuery = '';
+  bool _hideBalance = false;
 
-  // Helper method to format date for grouping
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
@@ -35,14 +36,135 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     }
   }
 
-  // Helper method to filter transactions
   bool _filterTransaction(UserTransaction transaction) {
+    final selectedWallet = ref.watch(selectedWalletProvider);
     final searchLower = _searchQuery.toLowerCase();
+
+    if (selectedWallet != 'All Wallets' &&
+        transaction.walletId != selectedWallet) {
+      return false;
+    }
+
     return transaction.categoryName.toLowerCase().contains(searchLower) ||
         transaction.categoryType.toLowerCase().contains(searchLower) ||
         transaction.description.toLowerCase().contains(searchLower) ||
         transaction.amount.toString().contains(searchLower) ||
         transaction.walletName.toLowerCase().contains(searchLower);
+  }
+
+  Widget _buildWalletBalance(String uid) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final walletsAsyncValue = ref.watch(walletsStreamProvider(uid));
+        final selectedWallet = ref.watch(selectedWalletProvider);
+
+        return walletsAsyncValue.when(
+          loading: () => const CircularProgressIndicator(),
+          error: (error, stack) => Text('Error: $error'),
+          data: (wallets) {
+            double totalBalance = 0;
+            if (selectedWallet == 'All Wallets') {
+              totalBalance = wallets.fold(
+                  0, (sum, wallet) => sum + (wallet['balance'] ?? 0.0));
+            } else {
+              final selectedWalletData = wallets.firstWhereOrNull(
+                (wallet) => wallet['id'] == selectedWallet,
+              );
+              totalBalance = selectedWalletData?['balance'] ?? 0.0;
+            }
+
+            return Card(
+              margin: const EdgeInsets.all(8),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'Total Balance',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: Icon(_hideBalance
+                              ? Icons.visibility_off
+                              : Icons.visibility),
+                          onPressed: () {
+                            setState(() {
+                              _hideBalance = !_hideBalance;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _hideBalance
+                          ? '*********'
+                          : NumberFormat.currency(
+                              locale: 'id_ID',
+                              symbol: 'Rp ',
+                              decimalDigits:
+                                  totalBalance == totalBalance.toInt() ? 0 : 2,
+                            ).format(totalBalance),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildWalletDropdown(String uid) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final walletsAsyncValue = ref.watch(walletsStreamProvider(uid));
+
+        return walletsAsyncValue.when(
+          loading: () => const CircularProgressIndicator(),
+          error: (error, stack) => Text('Error: $error'),
+          data: (wallets) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: DropdownButton<String>(
+                  isExpanded: false,
+                  value: ref.watch(selectedWalletProvider),
+                  items: [
+                    const DropdownMenuItem(
+                      value: 'All Wallets',
+                      child: Text('All Wallets'),
+                    ),
+                    ...wallets.map((wallet) => DropdownMenuItem(
+                          value: wallet['id'] as String,
+                          child: Text(wallet['name'] as String),
+                        )),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      ref.read(selectedWalletProvider.notifier).state = value;
+                    }
+                  },
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -52,45 +174,46 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transaction List'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(75),
+          child: Column(
+            children: [
+              _buildWalletBalance(uid),
+            ],
+          ),
+        ),
       ),
       body: Column(
         children: [
-          // Search and filter row
+          const SizedBox(height: 8),
+          _buildWalletDropdown(uid),
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Search transactions...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                setState(() {
-                                  _searchQuery = '';
-                                });
-                              },
-                            )
-                          : null,
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                  ),
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              decoration: InputDecoration(
+                labelText: 'Search transactions...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
-              ],
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
             ),
           ),
-          // Transactions list
           Expanded(
             child: transactionAsyncValue.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -102,7 +225,6 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                       child: Text('No transactions available.'));
                 }
 
-                // Filter transactions based on search query
                 final filteredTransactions =
                     transactions.where(_filterTransaction).toList();
 
@@ -111,7 +233,6 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                       child: Text('No matching transactions found.'));
                 }
 
-                // Group transactions by date
                 final groupedTransactions = groupBy(
                   filteredTransactions,
                   (transaction) => _formatDate(transaction.date),
@@ -123,7 +244,6 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                     final date = groupedTransactions.keys.elementAt(index);
                     final dateTransactions = groupedTransactions[date]!;
 
-                    // Calculate total income and expense for the date
                     double totalIncome = 0;
                     double totalExpense = 0;
                     for (var transaction in dateTransactions) {
@@ -140,7 +260,6 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Date header with summary
                           Padding(
                             padding: const EdgeInsets.all(12),
                             child: Column(
@@ -194,7 +313,6 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                               ],
                             ),
                           ),
-                          // Transactions list for this date
                           ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),

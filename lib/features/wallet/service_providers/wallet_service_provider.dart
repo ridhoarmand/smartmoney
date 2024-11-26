@@ -49,3 +49,21 @@ final walletStreamProvider =
     }).toList();
   });
 });
+
+// Provider untuk menyimpan wallet yang dipilih
+final selectedWalletProvider = StateProvider<String>((ref) => 'All Wallets');
+
+// Provider untuk stream wallet
+final walletsStreamProvider =
+    StreamProvider.family<List<Map<String, dynamic>>, String>((ref, uid) {
+  return FirebaseFirestore.instance
+      .collection('users/$uid/wallets')
+      .snapshots()
+      .map((snapshot) => snapshot.docs
+          .map((doc) => {
+                'id': doc.id,
+                'name': doc.data()['name'] as String,
+                'balance': doc.data()['balance'] as double,
+              })
+          .toList());
+});
