@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../wallet/models/wallet.dart';
-import '../../wallet/providers/wallet_provider.dart';
+import '../../wallet/service_providers/wallet_service_provider.dart';
 
 class WalletSelectionScreen extends ConsumerStatefulWidget {
   const WalletSelectionScreen({super.key});

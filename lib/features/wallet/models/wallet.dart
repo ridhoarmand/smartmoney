@@ -4,7 +4,7 @@ class Wallet {
   final String id;
   final String name;
   final String currency;
-  final double balance;
+  final num balance;
   final IconData icon;
 
   Wallet({
@@ -19,7 +19,7 @@ class Wallet {
     String? id,
     String? name,
     String? currency,
-    double? balance,
+    num? balance,
     IconData? icon,
   }) {
     return Wallet(
@@ -33,7 +33,6 @@ class Wallet {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'name': name,
       'currency': currency,
       'balance': balance,
@@ -48,6 +47,17 @@ class Wallet {
       currency: map['currency'],
       balance: map['balance'],
       icon: IconData(map['icon'], fontFamily: 'MaterialIcons'),
+    );
+  }
+
+  // wallet from firestore
+  factory Wallet.fromFirestore(Map<String, dynamic> data) {
+    return Wallet(
+      id: data['id'] as String,
+      name: data['name'] as String,
+      currency: data['currency'] as String,
+      balance: data['balance'] as num,
+      icon: IconData(data['icon'] as int, fontFamily: 'MaterialIcons'),
     );
   }
 }

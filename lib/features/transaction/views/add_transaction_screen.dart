@@ -38,12 +38,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           uid: uid,
           amount: double.parse(_amountController.text),
           categoryId: _selectedCategoryId!,
-          categoryName: _selectedCategoryName!,
           categoryType: _selectedCategoryType!,
           description: _descriptionController.text,
           date: _selectedDate,
           walletId: _selectedWalletId!,
-          walletName: _selectedWallet!,
           imagePath: _imagePath,
         );
 

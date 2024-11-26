@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
-import 'package:smartmoney/features/transaction/views/transaction_filters_screen.dart';
 import '../../auth/providers/auth_provider.dart';
-import '../../category/models/category.dart';
-import '../../category/service_providers/category_service_provider.dart';
 import '../models/user_transaction_model.dart';
 import '../service_providers/transaction_service_providers.dart';
 import "../../transaction/views/update_transaction_screen.dart";
@@ -52,7 +49,6 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
   Widget build(BuildContext context) {
     final uid = ref.watch(authRepositoryProvider).currentUser!.uid;
     final transactionAsyncValue = ref.watch(transactionStreamProvider(uid));
-    final categoryAsyncValue = ref.watch(categoryStreamProvider(uid));
 
     return Scaffold(
       appBar: AppBar(
@@ -91,22 +87,6 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                     },
                   ),
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.filter_list),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TransactionFilterScreen(
-                          onApplyFilter: (filterData) {
-                            // Implement filter logic here
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                ),
               ],
             ),
           ),
@@ -137,166 +117,151 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                   (transaction) => _formatDate(transaction.date),
                 );
 
-                return categoryAsyncValue.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) =>
-                      Center(child: Text('Error loading categories: $error')),
-                  data: (categories) {
-                    return ListView.builder(
-                      itemCount: groupedTransactions.length,
-                      itemBuilder: (context, index) {
-                        final date = groupedTransactions.keys.elementAt(index);
-                        final dateTransactions = groupedTransactions[date]!;
+                return ListView.builder(
+                  itemCount: groupedTransactions.length,
+                  itemBuilder: (context, index) {
+                    final date = groupedTransactions.keys.elementAt(index);
+                    final dateTransactions = groupedTransactions[date]!;
 
-                        // Calculate total income and expense for the date
-                        double totalIncome = 0;
-                        double totalExpense = 0;
-                        for (var transaction in dateTransactions) {
-                          if (transaction.categoryType == 'Income') {
-                            totalIncome += transaction.amount;
-                          } else {
-                            totalExpense += transaction.amount;
-                          }
-                        }
+                    // Calculate total income and expense for the date
+                    double totalIncome = 0;
+                    double totalExpense = 0;
+                    for (var transaction in dateTransactions) {
+                      if (transaction.categoryType == 'Income') {
+                        totalIncome += transaction.amount;
+                      } else {
+                        totalExpense += transaction.amount;
+                      }
+                    }
 
-                        return Card(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Date header with summary
-                              Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Date header with summary
+                          Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  date,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    if (totalIncome > 0)
+                                      Text(
+                                        'Income: + ${NumberFormat.currency(
+                                          locale: 'id_ID',
+                                          symbol: 'Rp ',
+                                          decimalDigits:
+                                              totalIncome == totalIncome.toInt()
+                                                  ? 0
+                                                  : 2,
+                                        ).format(totalIncome)}',
+                                        style: const TextStyle(
+                                          color: Colors.green,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    if (totalIncome > 0 && totalExpense > 0)
+                                      const Text(' • ',
+                                          style: TextStyle(fontSize: 12)),
+                                    if (totalExpense > 0)
+                                      Text(
+                                        'Expense: - ${NumberFormat.currency(
+                                          locale: 'id_ID',
+                                          symbol: 'Rp ',
+                                          decimalDigits: totalExpense ==
+                                                  totalExpense.toInt()
+                                              ? 0
+                                              : 2,
+                                        ).format(totalExpense)}',
+                                        style: const TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Transactions list for this date
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: dateTransactions.length,
+                            itemBuilder: (context, transactionIndex) {
+                              final transaction =
+                                  dateTransactions[transactionIndex];
+
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor:
+                                      transaction.categoryType == 'Income'
+                                          ? Colors.green
+                                          : Colors.red,
+                                  child: Icon(
+                                    transaction.categoryType == 'Income'
+                                        ? Icons.arrow_downward
+                                        : Icons.arrow_upward,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                title: Text(transaction.categoryName),
+                                subtitle: Text(transaction.description),
+                                trailing: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Text(
-                                      date,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
+                                      transaction.walletName,
+                                      style: const TextStyle(fontSize: 12),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        if (totalIncome > 0)
-                                          Text(
-                                            'Income: + ${NumberFormat.currency(
-                                              locale: 'id_ID',
-                                              symbol: 'Rp ',
-                                              decimalDigits: totalIncome ==
-                                                      totalIncome.toInt()
-                                                  ? 0
-                                                  : 2,
-                                            ).format(totalIncome)}',
-                                            style: const TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        if (totalIncome > 0 && totalExpense > 0)
-                                          const Text(' • ',
-                                              style: TextStyle(fontSize: 12)),
-                                        if (totalExpense > 0)
-                                          Text(
-                                            'Expense: - ${NumberFormat.currency(
-                                              locale: 'id_ID',
-                                              symbol: 'Rp ',
-                                              decimalDigits: totalExpense ==
-                                                      totalExpense.toInt()
-                                                  ? 0
-                                                  : 2,
-                                            ).format(totalExpense)}',
-                                            style: const TextStyle(
-                                              color: Colors.red,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                      ],
+                                    Text(
+                                      '${transaction.categoryType == 'Income' ? '+' : '-'} ${NumberFormat.currency(
+                                        locale: 'id_ID',
+                                        symbol: 'Rp ',
+                                        decimalDigits: transaction.amount ==
+                                                transaction.amount.toInt()
+                                            ? 0
+                                            : 2,
+                                      ).format(transaction.amount)}',
+                                      style: TextStyle(
+                                        color:
+                                            transaction.categoryType == 'Income'
+                                                ? Colors.green
+                                                : Colors.red,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                              // Transactions list for this date
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: dateTransactions.length,
-                                itemBuilder: (context, transactionIndex) {
-                                  final transaction =
-                                      dateTransactions[transactionIndex];
-                                  final category = categories.firstWhere(
-                                    (cat) => cat.id == transaction.categoryId,
-                                    orElse: () => Category(
-                                      id: '',
-                                      name: 'Uncategorized',
-                                      type: 'none',
-                                      icon: Icons.help,
-                                    ),
-                                  );
-
-                                  return ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor: category.type == 'Income'
-                                          ? Colors.green
-                                          : Colors.red,
-                                      child: Icon(
-                                        category.icon,
-                                        color: Colors.white,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          UpdateTransactionScreen(
+                                        transaction: transaction,
+                                        transactionId: transaction.id,
                                       ),
                                     ),
-                                    title: Text(category.name),
-                                    subtitle: Text(transaction.description),
-                                    trailing: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          transaction.walletName,
-                                          style: const TextStyle(fontSize: 12),
-                                        ),
-                                        Text(
-                                          '${category.type == 'Income' ? '+' : '-'} ${NumberFormat.currency(
-                                            locale: 'id_ID',
-                                            symbol: 'Rp ',
-                                            decimalDigits: transaction.amount ==
-                                                    transaction.amount.toInt()
-                                                ? 0
-                                                : 2,
-                                          ).format(transaction.amount)}',
-                                          style: TextStyle(
-                                            color: category.type == 'Income'
-                                                ? Colors.green
-                                                : Colors.red,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              UpdateTransactionScreen(
-                                            transaction: transaction,
-                                            transactionId: transaction.id,
-                                          ),
-                                        ),
-                                      );
-                                    },
                                   );
                                 },
-                              ),
-                            ],
+                              );
+                            },
                           ),
-                        );
-                      },
+                        ],
+                      ),
                     );
                   },
                 );

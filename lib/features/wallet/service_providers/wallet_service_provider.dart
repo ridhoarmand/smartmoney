@@ -3,6 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/wallet.dart';
 
+final walletProvider =
+    StateNotifierProvider<WalletNotifier, List<Wallet>>((ref) {
+  return WalletNotifier();
+});
+
 class WalletNotifier extends StateNotifier<List<Wallet>> {
   WalletNotifier() : super([]);
 
@@ -31,3 +36,16 @@ class WalletNotifier extends StateNotifier<List<Wallet>> {
     await fetchWallets(uid);
   }
 }
+
+// PROVIDER untuk mengambil stream Wallet berdasarkan UID pengguna
+final walletStreamProvider =
+    StreamProvider.family<List<Wallet>, String>((ref, uid) {
+  final firestore = FirebaseFirestore.instance;
+
+  return firestore.collection('users/$uid/wallets').snapshots().map((snapshot) {
+    return snapshot.docs.map((doc) {
+      return Wallet.fromFirestore(
+          doc.data()..['id'] = doc.id); // Add 'id' from document ID
+    }).toList();
+  });
+});

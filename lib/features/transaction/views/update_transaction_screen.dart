@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../models/user_transaction_model.dart';
 import '../service_providers/transaction_service_providers.dart';
 import 'category_selection_screen.dart';
 import 'wallet_selection_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../transaction/models/user_transaction_model.dart';
 
 class UpdateTransactionScreen extends ConsumerStatefulWidget {
   final String transactionId;
@@ -70,12 +69,9 @@ class _UpdateTransactionScreenState
           oldTransaction: widget.transaction,
           amount: double.parse(_amountController.text),
           categoryId: _selectedCategoryId!,
-          categoryName: _selectedCategoryName!,
-          categoryType: _selectedCategoryType!,
           description: _descriptionController.text,
           date: _selectedDate,
           walletId: _selectedWalletId!,
-          walletName: _selectedWallet!,
           imagePath: _imagePath,
         );
 

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../models/wallet.dart';
-import '../providers/wallet_provider.dart';
+import '../service_providers/wallet_service_provider.dart';
 import 'currency_secelction_screen.dart';
 
 class AddEditWalletScreen extends ConsumerStatefulWidget {
@@ -31,75 +30,61 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
     _nameController = TextEditingController(text: widget.wallet?.name ?? '');
     _balanceController = TextEditingController(
       text: widget.wallet?.balance != null
-          ? NumberFormat.currency(locale: 'id_ID', symbol: '', decimalDigits: 2)
-              .format(widget.wallet!.balance)
-          : '0',
+          ? widget.wallet!.balance.toString()
+          : '',
     );
     _currency = widget.wallet?.currency ?? 'Rupiah';
     _selectedIcon = widget.wallet?.icon ?? Icons.account_balance_wallet;
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _balanceController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.wallet == null ? 'Add Wallet' : 'Edit Wallet'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                final newWallet = Wallet(
-                  id: widget.wallet?.id ?? '',
-                  name: _nameController.text,
-                  currency: _currency,
-                  balance:
-                      double.parse(_balanceController.text.replaceAll(',', '')),
-                  icon: _selectedIcon,
-                );
-                ref
-                    .read(walletProvider.notifier)
-                    .addOrUpdateWallet(widget.uid, newWallet);
-                Navigator.pop(context);
-              }
-            },
-          ),
-        ],
+        title: Text(widget.wallet == null ? 'Tambah Dompet' : 'Edit Dompet'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 children: [
-                  GestureDetector(
-                    onTap: () async {
-                      final selectedIcon = await _showIconPickerDialog(context);
-                      if (selectedIcon != null) {
-                        setState(() {
-                          _selectedIcon = selectedIcon;
-                        });
-                      }
-                    },
-                    child: Icon(_selectedIcon, size: 40),
+                  InkWell(
+                    onTap: () => _showIconPickerDialog(),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blueGrey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(_selectedIcon, color: Colors.blue, size: 40),
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextFormField(
                       controller: _nameController,
                       decoration:
-                          const InputDecoration(labelText: 'Wallet Name'),
+                          const InputDecoration(labelText: 'Nama Dompet'),
                       validator: (value) => value == null || value.isEmpty
-                          ? 'Enter wallet name'
+                          ? 'Masukkan nama dompet'
                           : null,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              GestureDetector(
+              InkWell(
                 onTap: () async {
                   final selectedCurrency = await Navigator.push<String>(
                     context,
@@ -113,42 +98,62 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
                     });
                   }
                 },
-                child: Row(
-                  children: [
-                    const SizedBox(width: 16),
-                    Expanded(child: Text('Currency: $_currency')),
-                  ],
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Mata Uang: $_currency',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _balanceController,
-                keyboardType: TextInputType.number,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  _ThousandsSeparatorInputFormatter(),
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                 ],
-                decoration: const InputDecoration(labelText: 'Balance'),
+                decoration: const InputDecoration(
+                  labelText: 'Saldo',
+                  hintText: '0.00',
+                ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Enter balance';
-                  if (double.tryParse(value.replaceAll(',', '')) == null) {
-                    return 'Enter valid number';
+                  if (value == null || value.isEmpty) {
+                    return 'Masukkan saldo';
+                  }
+                  try {
+                    final amount = double.parse(value);
+                    if (amount < 0) {
+                      return 'Saldo tidak boleh negatif';
+                    }
+                  } catch (e) {
+                    return 'Format saldo tidak valid';
                   }
                   return null;
                 },
               ),
-              const Spacer(),
-              if (widget.wallet != null)
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: _saveWallet,
+                child: const Text('Simpan'),
+              ),
+              if (widget.wallet != null) ...[
+                const SizedBox(height: 16),
                 TextButton(
-                  onPressed: () {
-                    ref
-                        .read(walletProvider.notifier)
-                        .deleteWallet(widget.uid, widget.wallet!.id);
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Delete Wallet',
-                      style: TextStyle(color: Colors.red)),
+                  onPressed: _deleteWallet,
+                  child: const Text(
+                    'Hapus Dompet',
+                    style: TextStyle(color: Colors.red),
+                  ),
                 ),
+              ],
             ],
           ),
         ),
@@ -156,9 +161,50 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
     );
   }
 
-  // A method to show an icon picker dialog
-  Future<IconData?> _showIconPickerDialog(BuildContext context) async {
-    List<IconData> iconsList = [
+  void _saveWallet() {
+    if (_formKey.currentState!.validate()) {
+      final newWallet = Wallet(
+        id: widget.wallet?.id ?? '',
+        name: _nameController.text,
+        currency: _currency,
+        balance: double.parse(_balanceController.text),
+        icon: _selectedIcon,
+      );
+      ref
+          .read(walletProvider.notifier)
+          .addOrUpdateWallet(widget.uid, newWallet);
+      Navigator.pop(context);
+    }
+  }
+
+  void _deleteWallet() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi'),
+        content: const Text('Apakah Anda yakin ingin menghapus dompet ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ref
+                  .read(walletProvider.notifier)
+                  .deleteWallet(widget.uid, widget.wallet!.id);
+              Navigator.pop(context);
+            },
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showIconPickerDialog() async {
+    final List<IconData> iconsList = [
       Icons.account_balance_wallet,
       Icons.credit_card,
       Icons.wallet_giftcard,
@@ -171,51 +217,39 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
       Icons.paid,
     ];
 
-    return showDialog<IconData>(
+    await showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Select Icon'),
-          content: GridView.builder(
+      builder: (context) => AlertDialog(
+        title: const Text('Pilih Ikon'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: GridView.builder(
+            shrinkWrap: true,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
             ),
             itemCount: iconsList.length,
             itemBuilder: (context, index) {
               final icon = iconsList[index];
-              return IconButton(
-                icon: Icon(icon),
-                onPressed: () {
-                  Navigator.pop(context, icon);
+              return InkWell(
+                onTap: () {
+                  setState(() => _selectedIcon = icon);
+                  Navigator.pop(context);
                 },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: _selectedIcon == icon ? Colors.grey[300] : null,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 32),
+                ),
               );
             },
           ),
-        );
-      },
-    );
-  }
-}
-
-// Custom input formatter for thousands separator
-class _ThousandsSeparatorInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    if (newValue.text.isEmpty) {
-      return newValue;
-    }
-
-    // Remove any existing commas
-    String newText = newValue.text.replaceAll(',', '');
-
-    // Format with thousands separator
-    final formatter = NumberFormat('#,###');
-    final formattedText = formatter.format(int.parse(newText));
-
-    return TextEditingValue(
-      text: formattedText,
-      selection: TextSelection.collapsed(offset: formattedText.length),
+        ),
+      ),
     );
   }
 }
