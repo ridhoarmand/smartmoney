@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart'; // Untuk format tanggal
+import 'package:intl/intl.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../service_providers/transaction_service_providers.dart';
 import 'category_selection_screen.dart';
 import 'wallet_selection_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
   const AddTransactionScreen({super.key});
@@ -32,53 +31,25 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     if (_formKey.currentState!.validate() &&
         _selectedCategoryType != null &&
         _selectedWalletId != null) {
-      final transactionService = ref.read(createTransactionProvider);
+      final transactionService = ref.read(transactionServiceProvider);
 
       try {
-        // Step 1: Ambil saldo dompet dari Firestore
-        final walletRef = FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .collection('wallets')
-            .doc(_selectedWalletId);
-        final walletSnapshot = await walletRef.get();
-        if (!walletSnapshot.exists) {
-          throw Exception('Selected wallet not found');
-        }
-
-        final walletData = walletSnapshot.data()!;
-        final currentBalance = walletData['balance'] as double;
-
-        // Step 2: Hitung saldo baru berdasarkan tipe transaksi
-        final amount = double.parse(_amountController.text);
-        double updatedBalance = currentBalance;
-        if (_selectedCategoryType == 'Income') {
-          updatedBalance += amount; // Tambah saldo untuk income
-        } else if (_selectedCategoryType == 'Expense') {
-          updatedBalance -= amount; // Kurangi saldo untuk expense
-        }
-
-        // Step 3: Simpan transaksi dan perbarui saldo dompet
         await transactionService.createTransaction(
           uid: uid,
-          type: _selectedCategoryType!, // Tambahkan parameter 'type'
-          amount: amount,
+          amount: double.parse(_amountController.text),
           categoryId: _selectedCategoryId!,
-          categoryName: _selectedCategoryName!, // Tambahkan 'categoryName'
-          categoryType: _selectedCategoryType!, // Tambahkan 'categoryType'
+          categoryName: _selectedCategoryName!,
+          categoryType: _selectedCategoryType!,
           description: _descriptionController.text,
           date: _selectedDate,
           walletId: _selectedWalletId!,
-          walletName: _selectedWallet!, // Tambahkan 'walletName'
+          walletName: _selectedWallet!,
           imagePath: _imagePath,
         );
-
-        await walletRef.update({'balance': updatedBalance}); // Update saldo
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Transaction added successfully!')),
         );
-
         Navigator.of(context).pop();
       } catch (error) {
         ScaffoldMessenger.of(context).showSnackBar(

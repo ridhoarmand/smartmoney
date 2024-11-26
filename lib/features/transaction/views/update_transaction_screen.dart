@@ -39,6 +39,11 @@ class _UpdateTransactionScreenState
   @override
   void initState() {
     super.initState();
+    // Initialize controllers with existing transaction data
+    _initializeFields();
+  }
+
+  void _initializeFields() {
     _amountController =
         TextEditingController(text: widget.transaction.amount.toString());
     _descriptionController =
@@ -56,75 +61,14 @@ class _UpdateTransactionScreenState
     if (_formKey.currentState!.validate() &&
         _selectedCategoryType != null &&
         _selectedWalletId != null) {
-      final transactionService = ref.read(updateTransactionProvider);
+      final transactionService = ref.read(transactionServiceProvider);
 
       try {
-        final walletCollection = FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .collection('wallets');
-
-        final oldWalletRef = walletCollection.doc(widget.transaction.walletId);
-        final newWalletRef = walletCollection.doc(_selectedWalletId);
-
-        // Ambil data dompet lama
-        final oldWalletSnapshot = await oldWalletRef.get();
-        if (!oldWalletSnapshot.exists) {
-          throw Exception('Old wallet not found');
-        }
-        final oldWalletData = oldWalletSnapshot.data()!;
-        double oldWalletBalance = oldWalletData['balance'] as double;
-
-        // Ambil data dompet baru (jika berbeda)
-        double newWalletBalance = 0.0;
-        if (_selectedWalletId != widget.transaction.walletId) {
-          final newWalletSnapshot = await newWalletRef.get();
-          if (!newWalletSnapshot.exists) {
-            throw Exception('New wallet not found');
-          }
-          final newWalletData = newWalletSnapshot.data()!;
-          newWalletBalance = newWalletData['balance'] as double;
-        }
-
-        // Nominal lama dan baru
-        final oldAmount = widget.transaction.amount;
-        final newAmount = double.parse(_amountController.text);
-
-        // Update saldo dompet lama jika wallet berubah
-        if (_selectedWalletId != widget.transaction.walletId) {
-          if (widget.transaction.categoryType == 'Income') {
-            oldWalletBalance -= oldAmount; // Kembalikan saldo lama jika income
-          } else {
-            oldWalletBalance += oldAmount; // Tambahkan saldo lama jika expense
-          }
-          await oldWalletRef.update({'balance': oldWalletBalance});
-        }
-
-        // Update saldo dompet baru
-        if (_selectedWalletId != widget.transaction.walletId) {
-          if (_selectedCategoryType == 'Income') {
-            newWalletBalance += newAmount; // Tambahkan saldo baru jika income
-          } else {
-            newWalletBalance -= newAmount; // Kurangi saldo baru jika expense
-          }
-          await newWalletRef.update({'balance': newWalletBalance});
-        } else {
-          // Jika wallet sama, langsung update saldo
-          double balanceAdjustment = newAmount - oldAmount;
-          if (_selectedCategoryType == 'Income') {
-            oldWalletBalance += balanceAdjustment;
-          } else {
-            oldWalletBalance -= balanceAdjustment;
-          }
-          await oldWalletRef.update({'balance': oldWalletBalance});
-        }
-
-        // Simpan perubahan transaksi
         await transactionService.updateTransaction(
           uid: uid,
           transactionId: widget.transactionId,
-          type: _selectedCategoryType!,
-          amount: newAmount,
+          oldTransaction: widget.transaction,
+          amount: double.parse(_amountController.text),
           categoryId: _selectedCategoryId!,
           categoryName: _selectedCategoryName!,
           categoryType: _selectedCategoryType!,
@@ -151,7 +95,27 @@ class _UpdateTransactionScreenState
     }
   }
 
-  @override
+  Future<void> _deleteTransaction(String uid) async {
+    final transactionService = ref.read(transactionServiceProvider);
+
+    try {
+      await transactionService.deleteTransaction(
+        uid: uid,
+        transactionId: widget.transactionId,
+        transaction: widget.transaction,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Transaction deleted successfully!')),
+      );
+      Navigator.of(context).pop();
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete transaction: $error')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final uid = ref.watch(authRepositoryProvider).currentUser!.uid;
@@ -284,8 +248,8 @@ class _UpdateTransactionScreenState
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Transaction'),
-        content: const Text(
-            'Are you sure you want to delete this transaction?'),
+        content:
+            const Text('Are you sure you want to delete this transaction?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -302,52 +266,4 @@ class _UpdateTransactionScreenState
       ),
     );
   }
-
-  /// Logika hapus transaksi
-  Future<void> _deleteTransaction(String uid) async {
-  final deleteTransaction = ref.read(deleteTransactionProvider);
-
-  try {
-    // Ambil data dompet dari Firestore
-    final walletRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .collection('wallets')
-        .doc(_selectedWalletId);
-    final walletSnapshot = await walletRef.get();
-
-    if (!walletSnapshot.exists) {
-      throw Exception('Wallet not found');
-    }
-
-    final walletData = walletSnapshot.data()!;
-    final currentBalance = walletData['balance'] as double;
-
-    // Hitung saldo baru berdasarkan jenis transaksi
-    final isIncome = _selectedCategoryType == 'Income';
-    final updatedBalance = isIncome
-        ? currentBalance - widget.transaction.amount
-        : currentBalance + widget.transaction.amount;
-
-    // Perbarui saldo dompet
-    await walletRef.update({'balance': updatedBalance});
-
-    // Hapus transaksi
-    await deleteTransaction.deleteTransaction(
-      uid: uid,
-      transactionId: widget.transactionId,
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Transaction deleted successfully!')),
-    );
-
-    Navigator.of(context).pop(); // Kembali ke halaman sebelumnya
-  } catch (error) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Failed to delete transaction: $error')),
-    );
-  }
-}
-
 }

@@ -3,25 +3,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UserTransaction {
   final String id;
   final String categoryId;
-  final String categoryName; // Tambahkan
-  final String categoryType; // Tambahkan
+  final String categoryName;
+  final String categoryType;
   final String description;
   final double amount;
   final DateTime date;
   final String walletId;
-  final String walletName; // Tambahkan
+  final String walletName;
   final String? imagePath;
 
   UserTransaction({
     required this.id,
     required this.categoryId,
-    required this.categoryName, // Tambahkan
-    required this.categoryType, // Tambahkan
+    required this.categoryName,
+    required this.categoryType,
     required this.description,
     required this.amount,
     required this.date,
     required this.walletId,
-    required this.walletName, // Tambahkan
+    required this.walletName,
     this.imagePath,
   });
 
@@ -46,13 +46,13 @@ class UserTransaction {
   Map<String, dynamic> toMap() {
     return {
       'categoryId': categoryId,
-      'categoryName': categoryName, // Tambahkan
-      'categoryType': categoryType, // Tambahkan
+      'categoryName': categoryName,
+      'categoryType': categoryType,
       'description': description,
       'amount': amount,
       'date': Timestamp.fromDate(date),
       'walletId': walletId,
-      'walletName': walletName, // Tambahkan
+      'walletName': walletName,
       'imagePath': imagePath,
     };
   }
