@@ -174,18 +174,9 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     final transactionAsyncValue = ref.watch(transactionStreamProvider(uid));
 
     return Scaffold(
-      appBar: AppBar(
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(75),
-          child: Column(
-            children: [
-              _buildWalletBalance(uid),
-            ],
-          ),
-        ),
-      ),
       body: Column(
         children: [
+          _buildWalletBalance(uid),
           const SizedBox(height: 8),
           _buildWalletDropdown(uid),
           Padding(
