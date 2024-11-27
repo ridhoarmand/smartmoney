@@ -1,6 +1,7 @@
 // transaction_service_providers.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/user_transaction_model.dart';
@@ -145,6 +146,7 @@ class TransactionService {
     required String transactionId,
     required UserTransaction oldTransaction,
     required String categoryId,
+    required String categoryType,
     required num amount,
     required String description,
     required DateTime date,
@@ -308,3 +310,5 @@ class TransactionService {
     }
   }
 }
+
+
