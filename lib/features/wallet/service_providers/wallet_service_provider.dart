@@ -63,7 +63,7 @@ final walletsStreamProvider =
           .map((doc) => {
                 'id': doc.id,
                 'name': doc.data()['name'] as String,
-                'balance': doc.data()['balance'] as double,
+                'balance': doc.data()['balance'] as num,
               })
           .toList());
 });

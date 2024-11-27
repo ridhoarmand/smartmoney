@@ -6,7 +6,7 @@ class UserTransaction {
   final String categoryName;
   final String categoryType;
   final String description;
-  final double amount;
+  final num amount;
   final DateTime date;
   final String walletId;
   final String walletName;

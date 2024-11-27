@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/user_transaction_model.dart';
 
 /// **Transaction Stream Provider**
@@ -80,7 +81,7 @@ class TransactionService {
     required String uid,
     required String categoryId,
     required String categoryType,
-    required double amount,
+    required num amount,
     required String description,
     required DateTime date,
     required String walletId,
@@ -96,7 +97,7 @@ class TransactionService {
       }
 
       // Calculate new balance
-      final currentBalance = walletDoc.data()!['balance'] as double;
+      final currentBalance = walletDoc.data()!['balance'] as num;
       final updatedBalance = _calculateNewBalance(
         currentBalance: currentBalance,
         amount: amount,
@@ -129,7 +130,7 @@ class TransactionService {
     required String transactionId,
     required UserTransaction oldTransaction,
     required String categoryId,
-    required double amount,
+    required num amount,
     required String description,
     required DateTime date,
     required String walletId,
@@ -160,8 +161,8 @@ class TransactionService {
         throw Exception('Old wallet not found');
       }
 
-      double oldWalletBalance = oldWalletDoc.data()!['balance'] as double;
-      double newWalletBalance = oldWalletBalance;
+      num oldWalletBalance = oldWalletDoc.data()!['balance'] as num;
+      num newWalletBalance = oldWalletBalance;
 
       // Handle category type change
       if (oldTransaction.categoryType != newCategoryType) {
@@ -193,7 +194,7 @@ class TransactionService {
         if (!newWalletDoc.exists) {
           throw Exception('New wallet not found');
         }
-        newWalletBalance = newWalletDoc.data()!['balance'] as double;
+        newWalletBalance = newWalletDoc.data()!['balance'] as num;
 
         if (oldTransaction.categoryType == newCategoryType) {
           // Revert old wallet balance only if category type hasn't changed
@@ -260,7 +261,7 @@ class TransactionService {
       }
 
       // Calculate updated balance
-      final currentBalance = walletDoc.data()!['balance'] as double;
+      final currentBalance = walletDoc.data()!['balance'] as num;
       final updatedBalance = _calculateNewBalance(
         currentBalance: currentBalance,
         amount: transaction.amount,
@@ -275,9 +276,9 @@ class TransactionService {
   }
 
   /// Calculate new balance based on transaction type
-  double _calculateNewBalance({
-    required double currentBalance,
-    required double amount,
+  num _calculateNewBalance({
+    required num currentBalance,
+    required num amount,
     required String categoryType,
     required bool isNewTransaction,
   }) {

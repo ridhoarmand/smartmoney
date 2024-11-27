@@ -1,12 +1,13 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:collection/collection.dart';
+
 import '../../auth/providers/auth_provider.dart';
+import "../../transaction/views/update_transaction_screen.dart";
 import '../../wallet/service_providers/wallet_service_provider.dart';
 import '../models/user_transaction_model.dart';
 import '../service_providers/transaction_service_providers.dart';
-import "../../transaction/views/update_transaction_screen.dart";
 
 class TransactionScreen extends ConsumerStatefulWidget {
   const TransactionScreen({super.key});
@@ -62,7 +63,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
           loading: () => const CircularProgressIndicator(),
           error: (error, stack) => Text('Error: $error'),
           data: (wallets) {
-            double totalBalance = 0;
+            num totalBalance = 0;
             if (selectedWallet == 'All Wallets') {
               totalBalance = wallets.fold(
                   0, (sum, wallet) => sum + (wallet['balance'] ?? 0.0));
@@ -244,8 +245,8 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                     final date = groupedTransactions.keys.elementAt(index);
                     final dateTransactions = groupedTransactions[date]!;
 
-                    double totalIncome = 0;
-                    double totalExpense = 0;
+                    num totalIncome = 0;
+                    num totalExpense = 0;
                     for (var transaction in dateTransactions) {
                       if (transaction.categoryType == 'Income') {
                         totalIncome += transaction.amount;
