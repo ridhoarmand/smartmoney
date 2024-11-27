@@ -12,7 +12,7 @@ class AuthRepository {
   bool get isSignedIn => _authService.isSignedIn;
 
   Future<UserCredential?> signUp(String email, String password) {
-    return _authService.signInWithEmail(email, password);
+    return _authService.signUpWithEmail(email, password);
   }
 
   Future<UserCredential?> signIn(String email, String password) {

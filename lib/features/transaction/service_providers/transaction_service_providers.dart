@@ -15,58 +15,73 @@ final transactionStreamProvider =
       .orderBy('date', descending: true)
       .snapshots()
       .asyncMap((snapshot) async {
-    final transactions = snapshot.docs.map((doc) {
-      final data = doc.data();
-      return UserTransaction.fromFirestore(data, doc.id);
-    }).toList();
+    // Jika tidak ada dokumen, kembalikan list kosong
+    if (snapshot.docs.isEmpty) {
+      return <UserTransaction>[];
+    }
 
-    // Ambil wallet dan kategori secara paralel
-    final walletIds = transactions.map((e) => e.walletId).toSet();
-    final categoryIds = transactions.map((e) => e.categoryId).toSet();
+    try {
+      final transactions = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return UserTransaction.fromFirestore(data, doc.id);
+      }).toList();
 
-    final walletsFuture = firestore
-        .collection('users/$uid/wallets')
-        .where(FieldPath.documentId, whereIn: walletIds.toList())
-        .get();
+      // Jika tidak ada transaksi, kembalikan list kosong
+      if (transactions.isEmpty) {
+        return <UserTransaction>[];
+      }
 
-    final categoriesFuture = firestore
-        .collection('users/$uid/categories')
-        .where(FieldPath.documentId, whereIn: categoryIds.toList())
-        .get();
+      // Ambil wallet dan kategori secara paralel
+      final walletIds = transactions.map((e) => e.walletId).toSet();
+      final categoryIds = transactions.map((e) => e.categoryId).toSet();
 
-    // Tunggu semua dokumen diambil
-    final results = await Future.wait([walletsFuture, categoriesFuture]);
+      final walletsFuture = firestore
+          .collection('users/$uid/wallets')
+          .where(FieldPath.documentId, whereIn: walletIds.toList())
+          .get();
 
-    // Buat map dari dokumen yang diambil
-    final walletDocs = results[0].docs;
-    final categoryDocs = results[1].docs;
+      final categoriesFuture = firestore
+          .collection('users/$uid/categories')
+          .where(FieldPath.documentId, whereIn: categoryIds.toList())
+          .get();
 
-    final walletMap = {
-      for (var doc in walletDocs) doc.id: doc.data(),
-    };
+      // Tunggu semua dokumen diambil
+      final results = await Future.wait([walletsFuture, categoriesFuture]);
 
-    final categoryMap = {
-      for (var doc in categoryDocs) doc.id: doc.data(),
-    };
+      // Buat map dari dokumen yang diambil
+      final walletDocs = results[0].docs;
+      final categoryDocs = results[1].docs;
 
-    // Perbarui data transaksi dengan informasi tambahan
-    return transactions.map((transaction) {
-      final walletData = walletMap[transaction.walletId];
-      final categoryData = categoryMap[transaction.categoryId];
+      final walletMap = {
+        for (var doc in walletDocs) doc.id: doc.data(),
+      };
 
-      return UserTransaction(
-        id: transaction.id,
-        categoryId: transaction.categoryId,
-        categoryName: categoryData?['name'] ?? 'Unknown Category',
-        categoryType: categoryData?['type'] ?? 'Unknown Type',
-        description: transaction.description,
-        amount: transaction.amount,
-        date: transaction.date,
-        walletId: transaction.walletId,
-        walletName: walletData?['name'] ?? 'Unknown Wallet',
-        imagePath: transaction.imagePath,
-      );
-    }).toList();
+      final categoryMap = {
+        for (var doc in categoryDocs) doc.id: doc.data(),
+      };
+
+      // Perbarui data transaksi dengan informasi tambahan
+      return transactions.map((transaction) {
+        final walletData = walletMap[transaction.walletId];
+        final categoryData = categoryMap[transaction.categoryId];
+
+        return UserTransaction(
+          id: transaction.id,
+          categoryId: transaction.categoryId,
+          categoryName: categoryData?['name'] ?? 'Unknown Category',
+          categoryType: categoryData?['type'] ?? 'Unknown Type',
+          description: transaction.description,
+          amount: transaction.amount,
+          date: transaction.date,
+          walletId: transaction.walletId,
+          walletName: walletData?['name'] ?? 'Unknown Wallet',
+          imagePath: transaction.imagePath,
+        );
+      }).toList();
+    } catch (e) {
+      // Tangani kesalahan dengan mengembalikan list kosong
+      return <UserTransaction>[];
+    }
   });
 });
 

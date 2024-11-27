@@ -78,46 +78,54 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
               margin: const EdgeInsets.all(8),
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Total Balance',
-                          style: TextStyle(
-                            fontSize: 16,
+                        Row(
+                          children: [
+                            const Text(
+                              'Total Balance',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: Icon(_hideBalance
+                                  ? Icons.visibility_off
+                                  : Icons.visibility),
+                              onPressed: () {
+                                setState(() {
+                                  _hideBalance = !_hideBalance;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _hideBalance
+                              ? '*********'
+                              : NumberFormat.currency(
+                                  locale: 'id_ID',
+                                  symbol: 'Rp ',
+                                  decimalDigits:
+                                      totalBalance == totalBalance.toInt()
+                                          ? 0
+                                          : 2,
+                                ).format(totalBalance),
+                          style: const TextStyle(
+                            fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: Icon(_hideBalance
-                              ? Icons.visibility_off
-                              : Icons.visibility),
-                          onPressed: () {
-                            setState(() {
-                              _hideBalance = !_hideBalance;
-                            });
-                          },
-                        ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _hideBalance
-                          ? '*********'
-                          : NumberFormat.currency(
-                              locale: 'id_ID',
-                              symbol: 'Rp ',
-                              decimalDigits:
-                                  totalBalance == totalBalance.toInt() ? 0 : 2,
-                            ).format(totalBalance),
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    const Spacer(),
+                    _buildWalletDropdown(uid),
                   ],
                 ),
               ),
@@ -137,30 +145,24 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
           loading: () => const CircularProgressIndicator(),
           error: (error, stack) => Text('Error: $error'),
           data: (wallets) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: DropdownButton<String>(
-                  isExpanded: false,
-                  value: ref.watch(selectedWalletProvider),
-                  items: [
-                    const DropdownMenuItem(
-                      value: 'All Wallets',
-                      child: Text('All Wallets'),
-                    ),
-                    ...wallets.map((wallet) => DropdownMenuItem(
-                          value: wallet['id'] as String,
-                          child: Text(wallet['name'] as String),
-                        )),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      ref.read(selectedWalletProvider.notifier).state = value;
-                    }
-                  },
+            return DropdownButton<String>(
+              isExpanded: false,
+              value: ref.watch(selectedWalletProvider),
+              items: [
+                const DropdownMenuItem(
+                  value: 'All Wallets',
+                  child: Text('All Wallets'),
                 ),
-              ),
+                ...wallets.map((wallet) => DropdownMenuItem(
+                      value: wallet['id'] as String,
+                      child: Text(wallet['name'] as String),
+                    )),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  ref.read(selectedWalletProvider.notifier).state = value;
+                }
+              },
             );
           },
         );
@@ -178,7 +180,6 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         children: [
           _buildWalletBalance(uid),
           const SizedBox(height: 8),
-          _buildWalletDropdown(uid),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
