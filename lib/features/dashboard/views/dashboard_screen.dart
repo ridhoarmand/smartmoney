@@ -63,7 +63,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return transactions.where((transaction) {
       final transactionDate = transaction.date;
       // Pastikan transaksi dari hari ini atau yang lebih baru disertakan
-      return transactionDate.isAfter(todayStart.subtract(Duration(days: 1))) ||
+      return transactionDate.isAfter(todayStart.subtract(const Duration(days: 1))) ||
           isSameDay(transactionDate, todayStart);
     }).toList();
   }
@@ -201,7 +201,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Padding(
@@ -209,10 +209,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: Container(
                   width: double.infinity,
                   height: 30,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                       border: Border(
                           bottom: BorderSide(color: Colors.black, width: 1))),
-                  child: Text(
+                  child: const Text(
                     'Jenis',
                     style: TextStyle(
                         color: Colors.black,
@@ -221,7 +221,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 25,),
+              const SizedBox(height: 25,),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -239,7 +239,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               borderRadius: BorderRadius.circular(15),
                               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 5,spreadRadius: (0.2))]
                             ),
-                            child: Align(
+                            child: const Align(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -266,7 +266,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               borderRadius: BorderRadius.circular(15),
                               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 5,spreadRadius: (0.2))]
                             ),
-                            child: Align(
+                            child: const Align(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -293,7 +293,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               borderRadius: BorderRadius.circular(15),
                               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 5,spreadRadius: (0.2))]
                             ),
-                             child: Align(
+                             child: const Align(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -310,16 +310,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Container(
                   width: double.infinity,
                   height: 30,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                       border: Border(
                           bottom: BorderSide(color: Colors.black, width: 1))),
-                  child: Text(
+                  child: const Text(
                     'Riwayat Transaksi',
                     style: TextStyle(
                         color: Colors.black,
