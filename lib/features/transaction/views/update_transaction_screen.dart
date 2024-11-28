@@ -1,5 +1,8 @@
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/user_transaction_model.dart';
@@ -33,12 +36,14 @@ class _UpdateTransactionScreenState
   String? _selectedWallet;
   String? _selectedWalletId;
   late DateTime _selectedDate;
+  File? _selectedImage;
   String? _imagePath;
+
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    // Initialize controllers with existing transaction data
     _initializeFields();
   }
 
@@ -56,6 +61,36 @@ class _UpdateTransactionScreenState
     _imagePath = widget.transaction.imagePath;
   }
 
+  Future<void> _pickImage() async {
+    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<String?> _uploadImage(String uid) async {
+    if (_selectedImage == null) return _imagePath;
+
+    try {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('transactions/${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+      final uploadTask = storageRef.putFile(_selectedImage!);
+      final snapshot = await uploadTask.whenComplete(() => null);
+      final url = await snapshot.ref.getDownloadURL();
+
+      return url;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Image upload failed: $e')),
+      );
+      return null;
+    }
+  }
+
   Future<void> _updateTransaction(String uid) async {
     if (_formKey.currentState!.validate() &&
         _selectedCategoryType != null &&
@@ -63,12 +98,17 @@ class _UpdateTransactionScreenState
       final transactionService = ref.read(transactionServiceProvider);
 
       try {
+        if (_selectedImage != null) {
+          _imagePath = await _uploadImage(uid);
+        }
+
         await transactionService.updateTransaction(
           uid: uid,
           transactionId: widget.transactionId,
           oldTransaction: widget.transaction,
           amount: double.parse(_amountController.text),
           categoryId: _selectedCategoryId!,
+          categoryType: _selectedCategoryType!,
           description: _descriptionController.text,
           date: _selectedDate,
           walletId: _selectedWalletId!,
@@ -91,40 +131,14 @@ class _UpdateTransactionScreenState
     }
   }
 
-  Future<void> _deleteTransaction(String uid) async {
-    final transactionService = ref.read(transactionServiceProvider);
-
-    try {
-      await transactionService.deleteTransaction(
-        uid: uid,
-        transactionId: widget.transactionId,
-        transaction: widget.transaction,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Transaction deleted successfully!')),
-      );
-      Navigator.of(context).pop();
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to delete transaction: $error')),
-      );
-    }
-  }
-
   @override
+
   Widget build(BuildContext context) {
     final uid = ref.watch(authRepositoryProvider).currentUser!.uid;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Update Transaction'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () => _confirmDelete(uid),
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -158,9 +172,8 @@ class _UpdateTransactionScreenState
                   onTap: () async {
                     final selectedCategory =
                         await Navigator.push<Map<String, String>?>(context,
-                            MaterialPageRoute(builder: (_) {
-                      return const CategorySelectionScreen();
-                    }));
+                            MaterialPageRoute(
+                                builder: (_) => const CategorySelectionScreen()));
                     if (selectedCategory != null) {
                       setState(() {
                         _selectedCategoryId = selectedCategory['id'];
@@ -178,9 +191,8 @@ class _UpdateTransactionScreenState
                   onTap: () async {
                     final selectedWallet =
                         await Navigator.push<Map<String, String>?>(context,
-                            MaterialPageRoute(builder: (_) {
-                      return const WalletSelectionScreen();
-                    }));
+                            MaterialPageRoute(
+                                builder: (_) => const WalletSelectionScreen()));
                     if (selectedWallet != null) {
                       setState(() {
                         _selectedWalletId = selectedWallet['id'];
@@ -222,6 +234,43 @@ class _UpdateTransactionScreenState
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    width: double.infinity,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.grey[200],
+                    ),
+                    child: _selectedImage == null && _imagePath == null
+                        ? const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_a_photo, size: 50),
+                                Text('Add Image'),
+                              ],
+                            ),
+                          )
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: _selectedImage != null
+                                ? Image.file(
+                                    _selectedImage!,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                  )
+                                : Image.network(
+                                    _imagePath!,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                  ),
+                          ),
+                  ),
+                ),
                 const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
@@ -234,31 +283,6 @@ class _UpdateTransactionScreenState
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  /// Konfirmasi dan hapus transaksi
-  void _confirmDelete(String uid) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Transaction'),
-        content:
-            const Text('Are you sure you want to delete this transaction?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              await _deleteTransaction(uid);
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
       ),
     );
   }

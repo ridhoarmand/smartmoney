@@ -27,11 +27,13 @@ class ListTileEditProfil extends ConsumerWidget {
               ? Image.network(
                   user!.photoURL!,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Icon(
-                    Icons.person,
-                    size: 35,
-                    color: Theme.of(context).iconTheme.color,
-                  ),
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.person,
+                      size: 35,
+                      color: Theme.of(context).iconTheme.color,
+                    );
+                  },
                 )
               : Icon(
                   Icons.person,
@@ -60,7 +62,7 @@ class ListTileEditProfil extends ConsumerWidget {
   Future<void> _handleEditPress(
       BuildContext context, WidgetRef ref, user) async {
     try {
-      final result = await context.push('/edit-profile', extra: user);
+      final result = await context.push('/profile', extra: user);
 
       if (result == true) {
         if (context.mounted) {

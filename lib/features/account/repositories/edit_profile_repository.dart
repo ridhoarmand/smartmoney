@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/edit_profile_service.dart';
@@ -19,7 +20,7 @@ class EditProfileRepository extends StateNotifier<bool> {
     required String newPassword,
     required bool changeEmail,
     required bool changePassword,
-    required File? imageFile,
+    required dynamic imageFile,
     required Function(String) onError,
     required Function() onSuccess,
   }) async {
@@ -27,7 +28,8 @@ class EditProfileRepository extends StateNotifier<bool> {
 
     try {
       if (imageFile != null) {
-        final photoURL = await _service.uploadImage(imageFile, user.uid);
+        final photoURL = await _service.uploadImage(
+            imageFile: imageFile, uid: user.uid, isWeb: kIsWeb);
         if (photoURL != null) {
           await user.updatePhotoURL(photoURL);
         }
