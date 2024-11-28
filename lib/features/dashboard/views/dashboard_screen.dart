@@ -209,13 +209,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: Container(
                   width: double.infinity,
                   height: 30,
-                  decoration: const BoxDecoration(
+                  decoration:  BoxDecoration(
                       border: Border(
-                          bottom: BorderSide(color: Colors.black, width: 1))),
-                  child: const Text(
+                          bottom: BorderSide(color: primaryColor, width: 1))),
+                  child:  const Text(
                     'Jenis',
                     style: TextStyle(
-                        color: Colors.black,
+                       
                         fontSize: 15,
                         fontWeight: FontWeight.w500),
                   ),
@@ -231,26 +231,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GestureDetector(
+                           onTap: (){},
                           child: Container(
                             width: 80,
                             height: 70,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: secondaryColor,
                               borderRadius: BorderRadius.circular(15),
-                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 5,spreadRadius: (0.2))]
+                              boxShadow: [BoxShadow(color: onPrimary, blurRadius: 5,spreadRadius: (0.2))]
                             ),
-                            child: const Align(
+                            child:  Align(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.pie_chart),
-                                  SizedBox(
+                                  Icon(Icons.pie_chart, color: onPrimary),
+                                  const SizedBox(
                                     height: 5,
                                   ),
                                   Text(
                                     'Grafik',
                                     style: TextStyle(
-                                        fontSize: 10, color: Colors.black),
+                                        fontSize: 10,color: onPrimary),
                                   )
                                 ],
                               ),
@@ -258,26 +259,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           ),
                         ),
                         GestureDetector(
+                           onTap: (){},
                           child: Container(
                             width: 80,
                             height: 70,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: secondaryColor,
                               borderRadius: BorderRadius.circular(15),
                               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 5,spreadRadius: (0.2))]
                             ),
-                            child: const Align(
+                            child:  Align(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.category),
-                                  SizedBox(
+                                  Icon(Icons.category, color: onPrimary),
+                                  const SizedBox(
                                     height: 5,
                                   ),
                                   Text(
                                     'Categories',
                                     style: TextStyle(
-                                        fontSize: 10, color: Colors.black),
+                                        fontSize: 10,color: onPrimary),
                                   )
                                 ],
                               ),
@@ -285,21 +287,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           ),
                         ),
                         GestureDetector(
+                         onTap: (){},
                           child: Container(
                             width: 80,
                             height: 70,
                             decoration: BoxDecoration(
-                               color: Colors.white,
+                               color: secondaryColor,
                               borderRadius: BorderRadius.circular(15),
                               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 5,spreadRadius: (0.2))]
                             ),
-                             child: const Align(
+                             child:  Align(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.wallet),
-                                  SizedBox(height: 5,),
-                                  Text('e-wallet', style: TextStyle(fontSize: 10, color: Colors.black),)
+                                  Icon(Icons.wallet, color:onPrimary),
+                                  const SizedBox(height: 5,),
+                                  Text('e-wallet', style: TextStyle(fontSize: 10, color: onPrimary),)
                                 ],
                               ),
                             ),
@@ -316,13 +319,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: Container(
                   width: double.infinity,
                   height: 30,
-                  decoration: const BoxDecoration(
+                  decoration:  BoxDecoration(
                       border: Border(
-                          bottom: BorderSide(color: Colors.black, width: 1))),
-                  child: const Text(
+                          bottom: BorderSide( color: primaryColor,width: 1))),
+                  child:  const Text(
                     'Riwayat Transaksi',
                     style: TextStyle(
-                        color: Colors.black,
+                     
                         fontSize: 15,
                         fontWeight: FontWeight.w500),
                   ),
