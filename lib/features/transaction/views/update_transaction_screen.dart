@@ -62,7 +62,8 @@ class _UpdateTransactionScreenState
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    final pickedFile =
+        await _imagePicker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
@@ -131,14 +132,38 @@ class _UpdateTransactionScreenState
     }
   }
 
-  @override
+  Future<void> _deleteTransaction(String uid) async {
+    final transactionService = ref.read(transactionServiceProvider);
+    try {
+      await transactionService.deleteTransaction(
+        uid: uid,
+        transactionId: widget.transactionId,
+        transaction: widget.transaction,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Transaction deleted successfully!')),
+      );
+      Navigator.of(context).pop();
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete transaction: $error')),
+      );
+    }
+  }
 
+  @override
   Widget build(BuildContext context) {
     final uid = ref.watch(authRepositoryProvider).currentUser!.uid;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Update Transaction'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: () => _confirmDelete(uid),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -171,9 +196,11 @@ class _UpdateTransactionScreenState
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     final selectedCategory =
-                        await Navigator.push<Map<String, String>?>(context,
+                        await Navigator.push<Map<String, String>?>(
+                            context,
                             MaterialPageRoute(
-                                builder: (_) => const CategorySelectionScreen()));
+                                builder: (_) =>
+                                    const CategorySelectionScreen()));
                     if (selectedCategory != null) {
                       setState(() {
                         _selectedCategoryId = selectedCategory['id'];
@@ -190,7 +217,8 @@ class _UpdateTransactionScreenState
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     final selectedWallet =
-                        await Navigator.push<Map<String, String>?>(context,
+                        await Navigator.push<Map<String, String>?>(
+                            context,
                             MaterialPageRoute(
                                 builder: (_) => const WalletSelectionScreen()));
                     if (selectedWallet != null) {
@@ -236,38 +264,64 @@ class _UpdateTransactionScreenState
                 ),
                 const SizedBox(height: 16),
                 GestureDetector(
-                  onTap: _pickImage,
+                  onTap: _selectedImage != null || _imagePath != null
+                      ? () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => Dialog(
+                              child: InteractiveViewer(
+                                child: _selectedImage != null
+                                    ? Image.file(_selectedImage!)
+                                    : Image.network(_imagePath!),
+                              ),
+                            ),
+                          );
+                        }
+                      : null,
                   child: Container(
                     width: double.infinity,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey[200],
-                    ),
+                    height: _selectedImage == null && _imagePath == null
+                        ? null
+                        : 200,
                     child: _selectedImage == null && _imagePath == null
-                        ? const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add_a_photo, size: 50),
-                                Text('Add Image'),
-                              ],
-                            ),
+                        ? ElevatedButton.icon(
+                            onPressed: _pickImage,
+                            icon: const Icon(Icons.add_a_photo),
+                            label: const Text('Add Image'),
                           )
-                        : ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: _selectedImage != null
-                                ? Image.file(
-                                    _selectedImage!,
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                  )
-                                : Image.network(
-                                    _imagePath!,
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
+                        : Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: _selectedImage != null
+                                    ? Image.file(
+                                        _selectedImage!,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: 200,
+                                      )
+                                    : Image.network(
+                                        _imagePath!,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: 200,
+                                      ),
+                              ),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: ElevatedButton(
+                                  onPressed: _pickImage,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Colors.white.withOpacity(0.8),
+                                    shape: const CircleBorder(),
                                   ),
+                                  child: const Icon(Icons.edit,
+                                      color: Colors.black),
+                                ),
+                              ),
+                            ],
                           ),
                   ),
                 ),
@@ -283,6 +337,31 @@ class _UpdateTransactionScreenState
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Konfirmasi dan hapus transaksi
+  void _confirmDelete(String uid) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Transaction'),
+        content:
+            const Text('Are you sure you want to delete this transaction?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await _deleteTransaction(uid);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }

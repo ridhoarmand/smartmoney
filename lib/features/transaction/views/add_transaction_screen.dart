@@ -33,7 +33,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   final ImagePicker _imagePicker = ImagePicker();
 
   Future<void> _pickImage() async {
-    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    final pickedFile =
+        await _imagePicker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       setState(() {
@@ -140,9 +141,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     final selectedCategory =
-                        await Navigator.push<Map<String, String>?>(context,
+                        await Navigator.push<Map<String, String>?>(
+                            context,
                             MaterialPageRoute(
-                                builder: (_) => const CategorySelectionScreen()));
+                                builder: (_) =>
+                                    const CategorySelectionScreen()));
                     if (selectedCategory != null) {
                       setState(() {
                         _selectedCategoryId = selectedCategory['id'];
@@ -159,7 +162,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     final selectedWallet =
-                        await Navigator.push<Map<String, String>?>(context,
+                        await Navigator.push<Map<String, String>?>(
+                            context,
                             MaterialPageRoute(
                                 builder: (_) => const WalletSelectionScreen()));
                     if (selectedWallet != null) {
@@ -205,32 +209,53 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 ),
                 const SizedBox(height: 16),
                 GestureDetector(
-                  onTap: _pickImage,
+                  onTap: _selectedImage != null
+                      ? () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => Dialog(
+                              child: InteractiveViewer(
+                                child: Image.file(_selectedImage!),
+                              ),
+                            ),
+                          );
+                        }
+                      : null,
                   child: Container(
                     width: double.infinity,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey[200],
-                    ),
+                    height: _selectedImage == null ? null : 200,
                     child: _selectedImage == null
-                        ? const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add_a_photo, size: 50),
-                                Text('Add Image'),
-                              ],
-                            ),
+                        ? ElevatedButton.icon(
+                            onPressed: _pickImage,
+                            icon: const Icon(Icons.add_a_photo),
+                            label: const Text('Add Image'),
                           )
-                        : ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              _selectedImage!,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                            ),
+                        : Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  _selectedImage!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: 200,
+                                ),
+                              ),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: ElevatedButton(
+                                  onPressed: _pickImage,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Colors.white.withOpacity(0.8),
+                                    shape: const CircleBorder(),
+                                  ),
+                                  child: const Icon(Icons.edit,
+                                      color: Colors.black),
+                                ),
+                              ),
+                            ],
                           ),
                   ),
                 ),
