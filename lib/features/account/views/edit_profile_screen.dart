@@ -25,7 +25,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _confirmPasswordController = TextEditingController();
 
   bool _showPassword = false;
-  File? _imageFile;
+  dynamic _imageFile;
   bool _changeEmail = false;
   bool _changePassword = false;
 
@@ -47,7 +47,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     super.dispose();
   }
 
-  void _handleImagePicked(File image) {
+  void _handleImagePicked(dynamic image) {
     setState(() {
       _imageFile = image;
     });

@@ -1,7 +1,7 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ImagePickerEditProfile extends StatelessWidget {
   const ImagePickerEditProfile({
@@ -11,16 +11,22 @@ class ImagePickerEditProfile extends StatelessWidget {
     required this.onImagePicked,
   });
 
-  final File? imageFile;
+  final dynamic imageFile;
   final String? currentPhotoURL;
-  final Function(File) onImagePicked;
+  final Function(dynamic) onImagePicked;
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
-      onImagePicked(File(image.path));
+    if (kIsWeb) {
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        onImagePicked(image); // Pass XFile langsung untuk web
+      }
+    } else {
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        onImagePicked(File(image.path)); // Convert ke File untuk mobile
+      }
     }
   }
 
@@ -56,7 +62,21 @@ class ImagePickerEditProfile extends StatelessWidget {
 
   Widget _buildImage(BuildContext context) {
     if (imageFile != null) {
-      return Image.file(imageFile!, fit: BoxFit.cover);
+      if (kIsWeb) {
+        // For web using image_picker_for_web
+        return Image.network(
+          imageFile.path,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Icon(
+            Icons.person,
+            size: 80,
+            color: Theme.of(context).iconTheme.color,
+          ),
+        );
+      } else {
+        // For mobile platforms
+        return Image.file(imageFile as File, fit: BoxFit.cover);
+      }
     } else if (currentPhotoURL != null) {
       return Image.network(
         currentPhotoURL!,

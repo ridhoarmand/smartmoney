@@ -26,9 +26,21 @@
     <link rel="manifest" href="manifest.json">
 
     <!-- Google Sign-In library -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-<script src="flutter_bootstrap.js" async></script>
+<script>
+    {{flutter_js}}
+    {{flutter_build_config}}
+
+    // TODO: Replace this with your own code to determine which renderer to use.
+    const useCanvasKit = true;
+
+    const config = {
+      renderer: useCanvasKit ? "canvaskit" : "skwasm",
+    };
+    _flutter.loader.load({
+      config: config,
+    });
+</script>
 </body>
 </html>
