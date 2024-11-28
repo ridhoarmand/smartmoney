@@ -57,8 +57,16 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go('/signin');
+          },
+        ),
+      ),
       body: Padding(
-        padding: const EdgeInsets.only(left: 40, right: 50, top: 60),
+        padding: const EdgeInsets.only(left: 40, right: 50, top: 20),
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -142,17 +150,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   Widget _buildButton() {
     return SizedBox(
+      height: 50,
       width: double.infinity,
-      child: ElevatedButton(
+      child: FilledButton(
         onPressed: _signUp,
-        style: ElevatedButton.styleFrom(
+        style: FilledButton.styleFrom(
           backgroundColor: Theme.of(context).primaryColor,
         ),
         child: const Text(
           'SIGN UP',
           style: TextStyle(
             fontSize: 15,
-            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),

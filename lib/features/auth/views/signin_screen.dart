@@ -150,7 +150,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+          padding: const EdgeInsets.only(left: 40, right: 50, top: 20),
           child: SingleChildScrollView(
             child: Form(
               key: _formKey,
@@ -210,7 +210,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               hintText: 'Enter your email',
               errorText: _emailError,
               prefixIcon: const Icon(Icons.email_outlined),
-              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 20),
@@ -233,7 +232,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
                 ),
               ),
-              border: const OutlineInputBorder(),
             ),
           ),
         ],
@@ -257,9 +255,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       child: SizedBox(
         height: 50,
         width: double.infinity,
-        child: ElevatedButton(
+        child: FilledButton(
           onPressed: _isLoading ? null : _signIn,
-          style: ElevatedButton.styleFrom(
+          style: FilledButton.styleFrom(
             backgroundColor: Theme.of(context).primaryColor,
             disabledBackgroundColor: Colors.grey,
           ),
@@ -276,7 +274,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   'SIGN IN',
                   style: TextStyle(
                     fontSize: 15,
-                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
