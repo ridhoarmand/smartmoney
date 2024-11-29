@@ -75,9 +75,10 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
             }
 
             return Card(
-              margin: const EdgeInsets.all(8),
+              margin: const EdgeInsets.all(16),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: Row(
                   children: [
                     Column(
@@ -92,7 +93,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 4),
                             IconButton(
                               icon: Icon(_hideBalance
                                   ? Icons.visibility_off
@@ -105,7 +106,6 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
                         Text(
                           _hideBalance
                               ? '*********'
@@ -180,7 +180,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         children: [
           _buildWalletBalance(uid),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: TextField(
               decoration: InputDecoration(
                 labelText: 'Search transactions...',

@@ -9,7 +9,7 @@ import '../../wallet/service_providers/wallet_service_provider.dart';
 import '../../wallet/models/wallet.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
@@ -159,12 +159,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   return DropdownMenuItem<Wallet?>(
                                     value: wallet,
                                     child: Text(
-                                      "${wallet.name}",
+                                      wallet.name,
                                       style: TextStyle(
                                           color: onPrimary, fontSize: 15),
                                     ),
                                   );
-                                }).toList(),
+                                }),
                               ],
                               onChanged: (Wallet? wallet) {
                                 setState(() {

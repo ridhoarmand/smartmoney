@@ -33,45 +33,46 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
   final ImagePicker _imagePicker = ImagePicker();
 
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  /// Picks an image from the gallery.
   Future<void> _pickImage() async {
-    if (kIsWeb) {
-      final XFile? image =
-          await _imagePicker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        setState(() {
-          _selectedImage = image; // Pass XFile langsung
-        });
-      }
-    } else {
-      final XFile? image =
-          await _imagePicker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path); // Convert ke File
-        });
-      }
+    final XFile? image =
+        await _imagePicker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _selectedImage = kIsWeb ? image : File(image.path);
+      });
     }
   }
 
+  /// Uploads the selected image to Firebase Storage.
   Future<String?> _uploadImage(String uid) async {
     if (_selectedImage == null) return null;
 
     try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
       final storageRef =
-          FirebaseStorage.instance.ref().child('transactions/$uid.jpg');
+          FirebaseStorage.instance.ref().child('transactions/$timestamp.jpg');
 
       final metadata = SettableMetadata(
         contentType: 'image/jpeg',
-        customMetadata: {'picked-file-path': 'transactions/$uid.jpg'},
+        customMetadata: {
+          'picked-file-path': 'transactions/$timestamp.jpg',
+        },
       );
 
-      if (kIsWeb) {
-        if (_selectedImage! is XFile) {
-          final bytes = await _selectedImage!.readAsBytes();
-          await storageRef.putData(bytes, metadata);
-        }
-      } else {
-        await storageRef.putFile(_selectedImage! as File, metadata);
+      if (kIsWeb && _selectedImage is XFile) {
+        final bytes = await (_selectedImage as XFile).readAsBytes();
+        await storageRef.putData(bytes, metadata);
+      } else if (_selectedImage is File) {
+        await storageRef.putFile(_selectedImage as File, metadata);
       }
 
       return await storageRef.getDownloadURL();
@@ -83,6 +84,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     }
   }
 
+  /// Submits the transaction form.
   Future<void> _submitTransaction(String uid) async {
     if (_formKey.currentState!.validate() &&
         _selectedCategoryType != null &&
@@ -90,7 +92,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       final transactionService = ref.read(transactionServiceProvider);
 
       try {
-        // Upload image and get URL
         if (_selectedImage != null) {
           _imageUrl = await _uploadImage(uid);
         }
@@ -135,176 +136,194 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                _buildAmountField(),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _amountController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Amount',
-                    prefixIcon: Icon(Icons.attach_money),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter an amount.';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Enter a valid number.';
-                    }
-                    return null;
-                  },
-                ),
+                _buildCategorySelector(context),
                 const SizedBox(height: 16),
-                ListTile(
-                  title: const Text('Category'),
-                  subtitle: Text(_selectedCategoryName ?? 'Select a category'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () async {
-                    final selectedCategory =
-                        await Navigator.push<Map<String, String>?>(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) =>
-                                    const CategorySelectionScreen()));
-                    if (selectedCategory != null) {
-                      setState(() {
-                        _selectedCategoryId = selectedCategory['id'];
-                        _selectedCategoryName = selectedCategory['name'];
-                        _selectedCategoryType = selectedCategory['type'];
-                      });
-                    }
-                  },
-                ),
+                _buildWalletSelector(context),
                 const SizedBox(height: 16),
-                ListTile(
-                  title: const Text('Wallet'),
-                  subtitle: Text(_selectedWallet ?? 'Select a wallet'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () async {
-                    final selectedWallet =
-                        await Navigator.push<Map<String, String>?>(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const WalletSelectionScreen()));
-                    if (selectedWallet != null) {
-                      setState(() {
-                        _selectedWalletId = selectedWallet['id'];
-                        _selectedWallet = selectedWallet['name'];
-                      });
-                    }
-                  },
-                ),
+                _buildDescriptionField(),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Description (Optional)',
-                  ),
-                ),
+                _buildDateSelector(),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Date: ${DateFormat('EEEE, dd/MM/yyyy').format(_selectedDate)}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    FilledButton(
-                      onPressed: () async {
-                        final pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: _selectedDate,
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2101),
-                        );
-                        if (pickedDate != null) {
-                          setState(() {
-                            _selectedDate = pickedDate;
-                          });
-                        }
-                      },
-                      child: const Text('Select Date'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: _selectedImage != null
-                      ? () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => Dialog(
-                              child: InteractiveViewer(
-                                child: Image.file(_selectedImage!),
-                              ),
-                            ),
-                          );
-                        }
-                      : null,
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: _selectedImage == null ? null : 200,
-                    child: _selectedImage == null
-                        ? ElevatedButton.icon(
-                            onPressed: _pickImage,
-                            icon: const Icon(Icons.add_a_photo),
-                            label: const Text('Add Image'),
-                          )
-                        : Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: kIsWeb
-                                    ? Image.network(
-                                        _selectedImage!.path,
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                        height: 200,
-                                        errorBuilder:
-                                            (context, error, stackTrace) =>
-                                                Icon(
-                                          Icons.person,
-                                          size: 80,
-                                          color:
-                                              Theme.of(context).iconTheme.color,
-                                        ),
-                                      )
-                                    : Image.file(
-                                        _selectedImage! as File,
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                        height: 200,
-                                      ),
-                              ),
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: ElevatedButton(
-                                  onPressed: _pickImage,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Colors.white.withOpacity(0.8),
-                                    shape: const CircleBorder(),
-                                  ),
-                                  child: const Icon(Icons.edit,
-                                      color: Colors.black),
-                                ),
-                              ),
-                            ],
-                          ),
-                  ),
-                ),
+                _buildImagePicker(),
                 const SizedBox(height: 30),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () => _submitTransaction(uid),
-                    child: const Text('Save Transaction'),
-                  ),
-                ),
+                _buildSubmitButton(uid),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAmountField() {
+    return TextFormField(
+      controller: _amountController,
+      keyboardType: TextInputType.number,
+      decoration: const InputDecoration(
+        labelText: 'Amount',
+        prefixIcon: Icon(Icons.attach_money),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter an amount.';
+        }
+        if (double.tryParse(value) == null) {
+          return 'Enter a valid number.';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildCategorySelector(BuildContext context) {
+    return ListTile(
+      title: const Text('Category'),
+      subtitle: Text(_selectedCategoryName ?? 'Select a category'),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () async {
+        final selectedCategory = await Navigator.push<Map<String, String>?>(
+          context,
+          MaterialPageRoute(builder: (_) => const CategorySelectionScreen()),
+        );
+
+        if (selectedCategory != null) {
+          setState(() {
+            _selectedCategoryId = selectedCategory['id'];
+            _selectedCategoryName = selectedCategory['name'];
+            _selectedCategoryType = selectedCategory['type'];
+          });
+        }
+      },
+    );
+  }
+
+  Widget _buildWalletSelector(BuildContext context) {
+    return ListTile(
+      title: const Text('Wallet'),
+      subtitle: Text(_selectedWallet ?? 'Select a wallet'),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () async {
+        final selectedWallet = await Navigator.push<Map<String, String>?>(
+          context,
+          MaterialPageRoute(builder: (_) => const WalletSelectionScreen()),
+        );
+
+        if (selectedWallet != null) {
+          setState(() {
+            _selectedWalletId = selectedWallet['id'];
+            _selectedWallet = selectedWallet['name'];
+          });
+        }
+      },
+    );
+  }
+
+  Widget _buildDescriptionField() {
+    return TextFormField(
+      controller: _descriptionController,
+      decoration: const InputDecoration(
+        labelText: 'Description (Optional)',
+      ),
+    );
+  }
+
+  Widget _buildDateSelector() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Date: ${DateFormat('EEEE, dd/MM/yyyy').format(_selectedDate)}',
+          style: const TextStyle(fontSize: 16),
+        ),
+        FilledButton(
+          onPressed: () async {
+            final pickedDate = await showDatePicker(
+              context: context,
+              initialDate: _selectedDate,
+              firstDate: DateTime(2000),
+              lastDate: DateTime(2101),
+            );
+            if (pickedDate != null) {
+              setState(() {
+                _selectedDate = pickedDate;
+              });
+            }
+          },
+          child: const Text('Select Date'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImagePicker() {
+    return GestureDetector(
+      onTap: _selectedImage != null
+          ? () {
+              showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                  child: InteractiveViewer(
+                    child: kIsWeb
+                        ? Image.network((_selectedImage as XFile).path)
+                        : Image.file(_selectedImage as File),
+                  ),
+                ),
+              );
+            }
+          : null,
+      child: SizedBox(
+        width: double.infinity,
+        height: _selectedImage == null ? null : 200,
+        child: _selectedImage == null
+            ? ElevatedButton.icon(
+                onPressed: _pickImage,
+                icon: const Icon(Icons.add_a_photo),
+                label: const Text('Add Image'),
+              )
+            : Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: kIsWeb
+                        ? Image.network(
+                            (_selectedImage as XFile).path,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: 200,
+                          )
+                        : Image.file(
+                            _selectedImage as File,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: 200,
+                          ),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: ElevatedButton(
+                      onPressed: _pickImage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white.withOpacity(0.8),
+                        shape: const CircleBorder(),
+                      ),
+                      child: const Icon(Icons.edit, color: Colors.black),
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton(String uid) {
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton(
+        onPressed: () => _submitTransaction(uid),
+        child: const Text('Save Transaction'),
       ),
     );
   }
