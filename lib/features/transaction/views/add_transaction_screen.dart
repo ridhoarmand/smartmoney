@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -27,19 +28,28 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   String? _selectedWallet;
   String? _selectedWalletId;
   DateTime _selectedDate = DateTime.now();
-  File? _selectedImage;
+  dynamic _selectedImage;
   String? _imageUrl;
 
   final ImagePicker _imagePicker = ImagePicker();
 
   Future<void> _pickImage() async {
-    final pickedFile =
-        await _imagePicker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
+    if (kIsWeb) {
+      final XFile? image =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _selectedImage = image; // Pass XFile langsung
+        });
+      }
+    } else {
+      final XFile? image =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path); // Convert ke File
+        });
+      }
     }
   }
 
@@ -47,15 +57,24 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     if (_selectedImage == null) return null;
 
     try {
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('transactions/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final storageRef =
+          FirebaseStorage.instance.ref().child('transactions/$uid.jpg');
 
-      final uploadTask = storageRef.putFile(_selectedImage!);
-      final snapshot = await uploadTask.whenComplete(() => null);
-      final url = await snapshot.ref.getDownloadURL();
+      final metadata = SettableMetadata(
+        contentType: 'image/jpeg',
+        customMetadata: {'picked-file-path': 'transactions/$uid.jpg'},
+      );
 
-      return url;
+      if (kIsWeb) {
+        if (_selectedImage! is XFile) {
+          final bytes = await _selectedImage!.readAsBytes();
+          await storageRef.putData(bytes, metadata);
+        }
+      } else {
+        await storageRef.putFile(_selectedImage! as File, metadata);
+      }
+
+      return await storageRef.getDownloadURL();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Image upload failed: $e')),
@@ -189,7 +208,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                       'Date: ${DateFormat('EEEE, dd/MM/yyyy').format(_selectedDate)}',
                       style: const TextStyle(fontSize: 16),
                     ),
-                    ElevatedButton(
+                    FilledButton(
                       onPressed: () async {
                         final pickedDate = await showDatePicker(
                           context: context,
@@ -221,7 +240,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                           );
                         }
                       : null,
-                  child: Container(
+                  child: SizedBox(
                     width: double.infinity,
                     height: _selectedImage == null ? null : 200,
                     child: _selectedImage == null
@@ -234,12 +253,27 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                             children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  _selectedImage!,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  height: 200,
-                                ),
+                                child: kIsWeb
+                                    ? Image.network(
+                                        _selectedImage!.path,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: 200,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Icon(
+                                          Icons.person,
+                                          size: 80,
+                                          color:
+                                              Theme.of(context).iconTheme.color,
+                                        ),
+                                      )
+                                    : Image.file(
+                                        _selectedImage! as File,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: 200,
+                                      ),
                               ),
                               Positioned(
                                 top: 8,
@@ -262,7 +296,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
+                  child: FilledButton(
                     onPressed: () => _submitTransaction(uid),
                     child: const Text('Save Transaction'),
                   ),

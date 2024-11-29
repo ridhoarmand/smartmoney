@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -36,7 +37,7 @@ class _UpdateTransactionScreenState
   String? _selectedWallet;
   String? _selectedWalletId;
   late DateTime _selectedDate;
-  File? _selectedImage;
+  dynamic _selectedImage;
   String? _imagePath;
 
   final ImagePicker _imagePicker = ImagePicker();
@@ -62,12 +63,22 @@ class _UpdateTransactionScreenState
   }
 
   Future<void> _pickImage() async {
-    final pickedFile =
-        await _imagePicker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
+    if (kIsWeb) {
+      final XFile? image =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _selectedImage = image; // Pass XFile langsung
+        });
+      }
+    } else {
+      final XFile? image =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path); // Convert ke File
+        });
+      }
     }
   }
 
@@ -75,15 +86,24 @@ class _UpdateTransactionScreenState
     if (_selectedImage == null) return _imagePath;
 
     try {
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('transactions/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final storageRef =
+          FirebaseStorage.instance.ref().child('transactions/$uid.jpg');
 
-      final uploadTask = storageRef.putFile(_selectedImage!);
-      final snapshot = await uploadTask.whenComplete(() => null);
-      final url = await snapshot.ref.getDownloadURL();
+      final metadata = SettableMetadata(
+        contentType: 'image/jpeg',
+        customMetadata: {'picked-file-path': 'transactions/$uid.jpg'},
+      );
 
-      return url;
+      if (kIsWeb) {
+        if (_selectedImage! is XFile) {
+          final bytes = await _selectedImage!.readAsBytes();
+          await storageRef.putData(bytes, metadata);
+        }
+      } else {
+        await storageRef.putFile(_selectedImage! as File, metadata);
+      }
+
+      return await storageRef.getDownloadURL();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Image upload failed: $e')),
@@ -244,7 +264,7 @@ class _UpdateTransactionScreenState
                       'Date: ${DateFormat('EEEE, dd/MM/yyyy').format(_selectedDate)}',
                       style: const TextStyle(fontSize: 16),
                     ),
-                    ElevatedButton(
+                    FilledButton(
                       onPressed: () async {
                         final pickedDate = await showDatePicker(
                           context: context,
@@ -271,14 +291,14 @@ class _UpdateTransactionScreenState
                             builder: (context) => Dialog(
                               child: InteractiveViewer(
                                 child: _selectedImage != null
-                                    ? Image.file(_selectedImage!)
+                                    ? Image.file(_selectedImage! as File)
                                     : Image.network(_imagePath!),
                               ),
                             ),
                           );
                         }
                       : null,
-                  child: Container(
+                  child: SizedBox(
                     width: double.infinity,
                     height: _selectedImage == null && _imagePath == null
                         ? null
@@ -294,17 +314,41 @@ class _UpdateTransactionScreenState
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: _selectedImage != null
-                                    ? Image.file(
-                                        _selectedImage!,
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                        height: 200,
-                                      )
+                                    ? kIsWeb
+                                        ? Image.network(
+                                            _selectedImage!.path,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            height: 200,
+                                            errorBuilder:
+                                                (context, error, stackTrace) =>
+                                                    Icon(
+                                              Icons.person,
+                                              size: 80,
+                                              color: Theme.of(context)
+                                                  .iconTheme
+                                                  .color,
+                                            ),
+                                          )
+                                        : Image.file(
+                                            _selectedImage! as File,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            height: 200,
+                                          )
                                     : Image.network(
                                         _imagePath!,
                                         fit: BoxFit.cover,
                                         width: double.infinity,
                                         height: 200,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Icon(
+                                          Icons.person,
+                                          size: 80,
+                                          color:
+                                              Theme.of(context).iconTheme.color,
+                                        ),
                                       ),
                               ),
                               Positioned(
@@ -328,7 +372,7 @@ class _UpdateTransactionScreenState
                 const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
+                  child: FilledButton(
                     onPressed: () => _updateTransaction(uid),
                     child: const Text('Update Transaction'),
                   ),
