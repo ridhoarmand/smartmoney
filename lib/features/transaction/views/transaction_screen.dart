@@ -77,7 +77,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
             return Card(
               margin: const EdgeInsets.all(8),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
                     Column(
@@ -179,9 +179,8 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
       body: Column(
         children: [
           _buildWalletBalance(uid),
-          const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: TextField(
               decoration: InputDecoration(
                 labelText: 'Search transactions...',
