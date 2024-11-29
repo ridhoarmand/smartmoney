@@ -13,7 +13,7 @@ class ListTileWallet extends StatelessWidget {
       title: const Text('My Wallets'),
       trailing: const Icon(Icons.arrow_forward_ios),
       onTap: () {
-        context.go('/account/wallets', extra: uid);
+        context.push('/account/wallets', extra: uid);
       },
     );
   }

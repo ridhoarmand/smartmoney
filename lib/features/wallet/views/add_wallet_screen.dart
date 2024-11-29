@@ -140,13 +140,13 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
                 },
               ),
               const SizedBox(height: 32),
-              ElevatedButton(
+              FilledButton(
                 onPressed: _saveWallet,
                 child: const Text('Simpan'),
               ),
               if (widget.wallet != null) ...[
                 const SizedBox(height: 16),
-                TextButton(
+                ElevatedButton(
                   onPressed: _deleteWallet,
                   child: const Text(
                     'Hapus Dompet',
