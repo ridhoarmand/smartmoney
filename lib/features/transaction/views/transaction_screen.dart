@@ -75,57 +75,61 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
             }
 
             return Card(
-              margin: const EdgeInsets.all(8),
+              margin: const EdgeInsets.symmetric(horizontal: 16),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                child: Row(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       children: [
-                        Row(
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Total Balance',
-                              style: TextStyle(
-                                fontSize: 16,
+                            Row(
+                              children: [
+                                const Text(
+                                  'Total Balance',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                IconButton(
+                                  icon: Icon(_hideBalance
+                                      ? Icons.visibility_off
+                                      : Icons.visibility),
+                                  onPressed: () {
+                                    setState(() {
+                                      _hideBalance = !_hideBalance;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            Text(
+                              _hideBalance
+                                  ? '*********'
+                                  : NumberFormat.currency(
+                                      locale: 'id_ID',
+                                      symbol: 'Rp ',
+                                      decimalDigits:
+                                          totalBalance == totalBalance.toInt()
+                                              ? 0
+                                              : 2,
+                                    ).format(totalBalance),
+                              style: const TextStyle(
+                                fontSize: 24,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            IconButton(
-                              icon: Icon(_hideBalance
-                                  ? Icons.visibility_off
-                                  : Icons.visibility),
-                              onPressed: () {
-                                setState(() {
-                                  _hideBalance = !_hideBalance;
-                                });
-                              },
-                            ),
                           ],
                         ),
-                        Text(
-                          _hideBalance
-                              ? '*********'
-                              : NumberFormat.currency(
-                                  locale: 'id_ID',
-                                  symbol: 'Rp ',
-                                  decimalDigits:
-                                      totalBalance == totalBalance.toInt()
-                                          ? 0
-                                          : 2,
-                                ).format(totalBalance),
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        const Spacer(),
+                        _buildWalletDropdown(uid),
                       ],
                     ),
-                    const Spacer(),
-                    _buildWalletDropdown(uid),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -183,30 +187,30 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
         children: [
           _buildWalletBalance(uid),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: TextField(
-              decoration: InputDecoration(
-                labelText: 'Search transactions...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: SizedBox(
+              child: TextField(
+                decoration: InputDecoration(
+                  isDense: true,
+                  labelText: 'Search transactions...',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                      : null,
                 ),
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          setState(() {
-                            _searchQuery = '';
-                          });
-                        },
-                      )
-                    : null,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
             ),
           ),
           Expanded(
