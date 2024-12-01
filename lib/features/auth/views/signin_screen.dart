@@ -13,6 +13,8 @@ class SignInScreen extends ConsumerStatefulWidget {
 }
 
 class _SignInScreenState extends ConsumerState<SignInScreen> {
+  late Future<void> loginStatusFuture;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
@@ -31,6 +33,28 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loginStatusFuture = _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    await Future.delayed(const Duration(seconds: 2));
+
+    final User? currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      await currentUser.getIdToken(true);
+    }
+
+    if (mounted) {
+      if (currentUser != null) {
+        // User is logged in, redirect to home
+        context.go('/dashboard');
+      }
+    }
   }
 
   // Improved email validation with better regex pattern

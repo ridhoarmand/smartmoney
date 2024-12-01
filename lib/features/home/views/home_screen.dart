@@ -33,10 +33,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     MenuItem(
       appBar: null,
       body: const DashboardScreen(),
-      route: '/home',
+      route: '/dashboard',
       bottomNavigationBarItem: const BottomNavigationBarItem(
         icon: Icon(Icons.home),
-        label: 'Home',
+        label: 'Dashboard',
       ),
     ),
     MenuItem(
@@ -54,17 +54,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       route: '/add-transaction',
       bottomNavigationBarItem: BottomNavigationBarItem(
         icon: Builder(
-          builder: (context) => Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Icon(Icons.add, color: Colors.white),
-            ),
-          ),
+          builder: (context) =>
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Theme
+                      .of(context)
+                      .primaryColor,
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(Icons.add, color: Colors.white),
+                ),
+              ),
         ),
         label: '',
       ),
@@ -100,10 +103,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _updateIndexBasedOnRoute() {
     if (!mounted) return;
 
-    final location = GoRouterState.of(context).uri.toString();
+    final location = GoRouterState
+        .of(context)
+        .uri
+        .toString();
     final index = menus.indexWhere((menu) => menu.route == location);
     if (index != -1 && index != ref.read(bottomNavIndexProvider)) {
-      ref.read(bottomNavIndexProvider.notifier).state = index;
+      ref
+          .read(bottomNavIndexProvider.notifier)
+          .state = index;
     }
   }
 
@@ -121,7 +129,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           if (index == 2) {
             context.push('/add-transaction');
           } else {
-            ref.read(bottomNavIndexProvider.notifier).state = index;
+            ref
+                .read(bottomNavIndexProvider.notifier)
+                .state = index;
             context.go(menus[index].route);
           }
         },

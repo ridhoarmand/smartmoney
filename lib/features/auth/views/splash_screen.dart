@@ -1,7 +1,8 @@
 import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -32,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
       if (mounted) {
         if (currentUser != null) {
           // User is logged in, redirect to home
-          context.go('/home');
+          context.go('/dashboard');
         } else {
           // User is not logged in, redirect to login
           context.go('/signin');

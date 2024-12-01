@@ -20,107 +20,112 @@ class AppRouter {
 
   AppRouter()
       : appRouter = GoRouter(
-          initialLocation: '/',
-          routes: [
-            GoRoute(
-              path: '/',
-              builder: (context, state) => const SplashScreen(),
-            ),
-            GoRoute(
-              path: '/signin',
-              builder: (context, state) => const SignInScreen(),
-            ),
-            GoRoute(
-              path: '/signup',
-              builder: (context, state) => const SignUpScreen(),
-            ),
-            GoRoute(
-              path: '/forgot-password',
-              builder: (context, state) => const ForgotPasswordScreen(),
-            ),
-            ShellRoute(
-              builder: (context, state, child) {
-                return const HomeScreen();
-              },
-              routes: [
-                GoRoute(
-                  path: '/home',
-                  pageBuilder: (context, state) => CustomTransitionPage(
-                    key: state.pageKey,
-                    child: const DashboardScreen(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      return FadeTransition(opacity: animation, child: child);
-                    },
-                  ),
+    initialLocation: '/',
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/signin',
+        builder: (context, state) => const SignInScreen(),
+      ),
+      GoRoute(
+        path: '/signup',
+        builder: (context, state) => const SignUpScreen(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      ShellRoute(
+        builder: (context, state, child) {
+          return const HomeScreen();
+        },
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            pageBuilder: (context, state) =>
+                CustomTransitionPage(
+                  key: state.pageKey,
+                  child: const DashboardScreen(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
                 ),
-                GoRoute(
-                  path: '/transactions',
-                  pageBuilder: (context, state) => CustomTransitionPage(
-                    key: state.pageKey,
-                    child: const TransactionScreen(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      return FadeTransition(opacity: animation, child: child);
-                    },
-                  ),
+          ),
+          GoRoute(
+            path: '/transactions',
+            pageBuilder: (context, state) =>
+                CustomTransitionPage(
+                  key: state.pageKey,
+                  child: const TransactionScreen(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
                 ),
-                GoRoute(
-                  path: '/categories',
-                  pageBuilder: (context, state) => CustomTransitionPage(
-                    key: state.pageKey,
-                    child: const CategoryScreen(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      return FadeTransition(opacity: animation, child: child);
-                    },
-                  ),
+          ),
+          GoRoute(
+            path: '/categories',
+            pageBuilder: (context, state) =>
+                CustomTransitionPage(
+                  key: state.pageKey,
+                  child: const CategoryScreen(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
                 ),
-                GoRoute(
-                  path: '/account',
-                  pageBuilder: (context, state) => CustomTransitionPage(
-                    key: state.pageKey,
-                    child: const BodyAccountScreen(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      return FadeTransition(opacity: animation, child: child);
-                    },
-                  ),
+          ),
+          GoRoute(
+            path: '/account',
+            pageBuilder: (context, state) =>
+                CustomTransitionPage(
+                  key: state.pageKey,
+                  child: const BodyAccountScreen(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
                 ),
-              ],
-            ),
-            GoRoute(
-              path: '/add-transaction',
-              pageBuilder: (context, state) => CustomTransitionPage(
-                key: state.pageKey,
-                child: const AddTransactionScreen(),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 1),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  );
-                },
-              ),
-            ),
-            GoRoute(
-              path: '/account/wallets',
-              builder: (context, state) {
-                final uid = state.extra as String;
-                return WalletScreen(uid: uid);
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/add-transaction',
+        pageBuilder: (context, state) =>
+            CustomTransitionPage(
+              key: state.pageKey,
+              child: const AddTransactionScreen(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 1),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                );
               },
             ),
-            GoRoute(
-              path: '/profile',
-              builder: (context, state) => const EditProfileScreen(),
-            ),
-            GoRoute(
-              path: '/setting/darkmode',
-              builder: (context, state) => const DarkModeScreen(),
-            ),
-          ],
-        );
+      ),
+      GoRoute(
+        path: '/account/wallets',
+        builder: (context, state) {
+          final uid = state.extra as String;
+          return WalletScreen(uid: uid);
+        },
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/setting/darkmode',
+        builder: (context, state) => const DarkModeScreen(),
+      ),
+    ],
+  );
 }

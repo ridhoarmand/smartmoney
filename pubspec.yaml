@@ -54,6 +54,7 @@ dependencies:
   intl: ^0.19.0
   flutter_iconpicker: ^4.0.1
   image_picker_for_web: ^3.0.6
+  flutter_launcher_icons: ^0.14.1
 
 dev_dependencies:
   flutter_test:
