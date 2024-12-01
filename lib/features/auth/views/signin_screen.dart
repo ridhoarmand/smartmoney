@@ -134,7 +134,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       if (!mounted) return;
 
       if (result != null) {
-        context.go('/home');
+        context.go('/dashboard');
       }
     } catch (e) {
       _showError(e.toString());
@@ -156,7 +156,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       if (!mounted) return;
 
       if (result != null) {
-        context.go('/home');
+        context.go('/dashboard');
       }
     } on FirebaseAuthException catch (e) {
       _showError('${e.message}');
