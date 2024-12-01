@@ -75,7 +75,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
             }
 
             return Card(
-              margin: const EdgeInsets.all(16),
+              margin: const EdgeInsets.all(8),
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -176,6 +176,9 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
     final transactionAsyncValue = ref.watch(transactionStreamProvider(uid));
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Transactions'),
+      ),
       body: Column(
         children: [
           _buildWalletBalance(uid),
@@ -253,7 +256,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.fromLTRB(12, 6, 12, 2),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -314,6 +317,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                                   dateTransactions[transactionIndex];
 
                               return ListTile(
+                                dense: true,
                                 leading: CircleAvatar(
                                   backgroundColor:
                                       transaction.categoryType == 'Income'
