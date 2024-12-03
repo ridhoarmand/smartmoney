@@ -8,6 +8,7 @@ import '../../wallet/service_providers/wallet_service_provider.dart';
 import 'widgets/recent_transactions.dart';
 import 'widgets/top_spending.dart';
 import 'widgets/wallet_balance_card.dart';
+import 'widgets/report_card.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -63,6 +64,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               WalletBalanceCard(
                   wallets: wallets, onWalletSelected: _handleWalletSelection),
               const SizedBox(height: 16),
+              ReportCard(uid: uid),
               transactionAsyncValue.when(
                 data: (transactions) {
                   final filteredTransactions = selectedWallet != null
