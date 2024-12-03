@@ -267,7 +267,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton(
-        onPressed: _isLoading ? null : () => context.go('/forgot-password'),
+        onPressed: _isLoading ? null : () => context.push('/forgot-password'),
         child: const Text("Forgot Password?"),
       ),
     );
@@ -312,7 +312,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       children: [
         const Text("Don't have an account? "),
         TextButton(
-          onPressed: _isLoading ? null : () => context.go('/signup'),
+          onPressed: _isLoading ? null : () => context.push('/signup'),
           child: const Text("Sign Up"),
         ),
       ],
