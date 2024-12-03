@@ -47,16 +47,16 @@ class CategoryScreenState extends ConsumerState<CategoryScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Income'),
             Tab(text: 'Expense'),
+            Tab(text: 'Income'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildCategoryView(rootCategories, 'Income'),
           _buildCategoryView(rootCategories, 'Expense'),
+          _buildCategoryView(rootCategories, 'Income'),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -66,7 +66,7 @@ class CategoryScreenState extends ConsumerState<CategoryScreen>
             MaterialPageRoute(
               builder: (_) => CategoryFormScreen(
                   uid: uid,
-                  type: _tabController.index == 0 ? 'Income' : 'Expense'),
+                  type: _tabController.index == 0 ? 'Expense' : 'Income'),
             ),
           );
         },

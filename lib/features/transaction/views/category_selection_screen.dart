@@ -44,16 +44,16 @@ class CategorySelectionScreenState
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.arrow_upward), text: 'Income'),
             Tab(icon: Icon(Icons.arrow_downward), text: 'Expense'),
+            Tab(icon: Icon(Icons.arrow_upward), text: 'Income'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildCategoryView(categories, 'Income'),
           _buildCategoryView(categories, 'Expense'),
+          _buildCategoryView(categories, 'Income'),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -63,7 +63,7 @@ class CategorySelectionScreenState
             MaterialPageRoute(
               builder: (_) => CategoryFormScreen(
                   uid: uid,
-                  type: _tabController.index == 0 ? 'Income' : 'Expense'),
+                  type: _tabController.index == 0 ? 'Expense' : 'Income'),
             ),
           );
         },
