@@ -6,6 +6,7 @@ import '../../transaction/service_providers/transaction_service_providers.dart';
 import '../../wallet/models/wallet.dart';
 import '../../wallet/service_providers/wallet_service_provider.dart';
 import 'widgets/recent_transactions.dart';
+import 'widgets/top_spending.dart';
 import 'widgets/wallet_balance_card.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -59,24 +60,38 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Wallet Balance Card
               WalletBalanceCard(
                   wallets: wallets, onWalletSelected: _handleWalletSelection),
-
-              const SizedBox(height: 10),
-
-              // Transaction History
+              const SizedBox(height: 16),
               transactionAsyncValue.when(
                 data: (transactions) {
-                  // Filter transactions based on selected wallet if any
                   final filteredTransactions = selectedWallet != null
                       ? transactions
-                          .where((transaction) =>
-                              transaction.walletId == selectedWallet!.id)
+                          .where((t) => t.walletId == selectedWallet!.id)
                           .toList()
                       : transactions;
 
-                  return const RecentTransactionsWidget();
+                  return Column(
+                    children: [
+                      if (filteredTransactions.isEmpty)
+                        const Card(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Center(
+                              child: Text(
+                                'Belum ada transaksi',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ),
+                        )
+                      else ...[
+                        const RecentTransactionsWidget(),
+                        const SizedBox(height: 16),
+                        const TopSpendingWidget(),
+                      ],
+                    ],
+                  );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stack) => Center(child: Text('Error: $error')),
