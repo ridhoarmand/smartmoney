@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:smartmoney/features/wallet/models/wallet.dart';
 
 import '../../../auth/providers/auth_provider.dart';
 import '../../../transaction/service_providers/transaction_service_providers.dart';
 import '../../../transaction/views/update_transaction_screen.dart';
 
 class RecentTransactionsWidget extends ConsumerWidget {
-  const RecentTransactionsWidget({super.key});
+  final Wallet? selectedWallet;
+
+  const RecentTransactionsWidget({
+    super.key,
+    this.selectedWallet,
+  });
 
   String _formatTransactionDate(DateTime date) {
     final now = DateTime.now();
@@ -38,8 +44,14 @@ class RecentTransactionsWidget extends ConsumerWidget {
               return const SizedBox.shrink();
             }
 
+            final filteredTransactions = selectedWallet != null
+                ? transactions
+                    .where((t) => t.walletId == selectedWallet!.id)
+                    .toList()
+                : transactions;
+
             // Sort and take top 3 transactions
-            final recentTransactions = transactions.take(3).toList();
+            final recentTransactions = filteredTransactions.take(3).toList();
 
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

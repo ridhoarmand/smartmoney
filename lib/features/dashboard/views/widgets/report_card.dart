@@ -1,91 +1,93 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+
+import '../../../auth/providers/auth_provider.dart';
 import '../../../transaction/service_providers/transaction_service_providers.dart';
+import '../../../wallet/models/wallet.dart';
 
-class ReportCard extends ConsumerWidget {
-  final String uid;
+class ReportCardWidget extends ConsumerStatefulWidget {
+  final Wallet? selectedWallet;
 
-  const ReportCard({Key? key, required this.uid}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final transactionAsyncValue = ref.watch(transactionStreamProvider(uid));
-
-    return transactionAsyncValue.when(
-      data: (transactions) {
-        // Filter transactions by date range
-        DateTime now = DateTime.now();
-        DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-        DateTime startOfMonth = DateTime(now.year, now.month, 1);
-
-        // Calculate totals
-        num totalIncomeWeek = transactions
-            .where((transaction) =>
-                transaction.date.isAfter(startOfWeek) &&
-                transaction.categoryType == 'Income')
-            .fold(0, (sum, transaction) => sum + transaction.amount);
-
-        num totalExpenseWeek = transactions
-            .where((transaction) =>
-                transaction.date.isAfter(startOfWeek) &&
-                transaction.categoryType == 'Expense')
-            .fold(0, (sum, transaction) => sum + transaction.amount);
-
-        num totalIncomeMonth = transactions
-            .where((transaction) =>
-                transaction.date.isAfter(startOfMonth) &&
-                transaction.categoryType == 'Income')
-            .fold(0, (sum, transaction) => sum + transaction.amount);
-
-        num totalExpenseMonth = transactions
-            .where((transaction) =>
-                transaction.date.isAfter(startOfMonth) &&
-                transaction.categoryType == 'Expense')
-            .fold(0, (sum, transaction) => sum + transaction.amount);
-
-        return ReportContent(
-          totalIncomeWeek: totalIncomeWeek,
-          totalExpenseWeek: totalExpenseWeek,
-          totalIncomeMonth: totalIncomeMonth,
-          totalExpenseMonth: totalExpenseMonth,
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Error: $error')),
-    );
-  }
-}
-
-class ReportContent extends StatefulWidget {
-  final num totalIncomeWeek;
-  final num totalExpenseWeek;
-  final num totalIncomeMonth;
-  final num totalExpenseMonth;
-
-  const ReportContent({
-    Key? key,
-    required this.totalIncomeWeek,
-    required this.totalExpenseWeek,
-    required this.totalIncomeMonth,
-    required this.totalExpenseMonth,
-  }) : super(key: key);
+  const ReportCardWidget({
+    super.key,
+    this.selectedWallet,
+  });
 
   @override
-  State<ReportContent> createState() => _ReportContentState();
+  ConsumerState<ReportCardWidget> createState() => _ReportCardWidgetState();
 }
 
-class _ReportContentState extends State<ReportContent> {
+class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
   bool isWeekly = true;
 
   @override
   Widget build(BuildContext context) {
+    final uid = ref.watch(authRepositoryProvider).currentUser?.uid;
+
+    if (uid == null) {
+      return const SizedBox.shrink();
+    }
+
+    return ref.watch(transactionStreamProvider(uid)).when(
+          data: (transactions) {
+            // Filter transactions by date range
+            DateTime now = DateTime.now();
+            DateTime startOfWeek =
+                now.subtract(Duration(days: now.weekday - 1));
+            DateTime startOfMonth = DateTime(now.year, now.month, 1);
+
+            // Calculate totals
+            num totalIncomeWeek = transactions
+                .where((transaction) =>
+                    (transaction.date.isAtSameMomentAs(startOfWeek) ||
+                        transaction.date.isAfter(startOfWeek)) &&
+                    transaction.categoryType == 'Income')
+                .fold(0, (sum, transaction) => sum + transaction.amount);
+
+            num totalExpenseWeek = transactions
+                .where((transaction) =>
+                    (transaction.date.isAtSameMomentAs(startOfWeek) ||
+                        transaction.date.isAfter(startOfWeek)) &&
+                    transaction.categoryType == 'Expense')
+                .fold(0, (sum, transaction) => sum + transaction.amount);
+
+            num totalIncomeMonth = transactions
+                .where((transaction) =>
+                    (transaction.date.isAtSameMomentAs(startOfMonth) ||
+                        transaction.date.isAfter(startOfMonth)) &&
+                    transaction.categoryType == 'Income')
+                .fold(0, (sum, transaction) => sum + transaction.amount);
+
+            num totalExpenseMonth = transactions
+                .where((transaction) =>
+                    (transaction.date.isAtSameMomentAs(startOfMonth) ||
+                        transaction.date.isAfter(startOfMonth)) &&
+                    transaction.categoryType == 'Expense')
+                .fold(0, (sum, transaction) => sum + transaction.amount);
+
+            return _buildReportCard(
+              totalIncomeWeek: totalIncomeWeek,
+              totalExpenseWeek: totalExpenseWeek,
+              totalIncomeMonth: totalIncomeMonth,
+              totalExpenseMonth: totalExpenseMonth,
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(child: Text('Error: $error')),
+        );
+  }
+
+  Widget _buildReportCard({
+    required num totalIncomeWeek,
+    required num totalExpenseWeek,
+    required num totalIncomeMonth,
+    required num totalExpenseMonth,
+  }) {
     final theme = Theme.of(context);
-    final totalIncome =
-        isWeekly ? widget.totalIncomeWeek : widget.totalIncomeMonth;
-    final totalExpense =
-        isWeekly ? widget.totalExpenseWeek : widget.totalExpenseMonth;
+    final totalIncome = isWeekly ? totalIncomeWeek : totalIncomeMonth;
+    final totalExpense = isWeekly ? totalExpenseWeek : totalExpenseMonth;
 
     final formatCurrency = NumberFormat.currency(
       locale: 'id_ID',
@@ -94,6 +96,7 @@ class _ReportContentState extends State<ReportContent> {
     );
 
     return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -107,13 +110,12 @@ class _ReportContentState extends State<ReportContent> {
                   'Report',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                GestureDetector(
-                  onTap: () {
+                TextButton(
+                  onPressed: () {
                     // TODO: Navigate to details screen
                   },
                   child: const Text(
                     'See details',
-                    style: TextStyle(color: Colors.blue),
                   ),
                 ),
               ],
@@ -165,7 +167,7 @@ class _ReportContentState extends State<ReportContent> {
 
             // Bar Chart
             SizedBox(
-              height: 300,
+              height: 250,
               child: BarChart(
                 BarChartData(
                   barGroups: [
@@ -212,14 +214,13 @@ class _ReportContentState extends State<ReportContent> {
                       sideTitles: SideTitles(showTitles: false),
                     ),
                   ),
-                  gridData: FlGridData(show: true),
+                  gridData: const FlGridData(show: true),
                   borderData: FlBorderData(show: false),
                   barTouchData: BarTouchData(
                     touchTooltipData: BarTouchTooltipData(
                       tooltipMargin: 10,
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        final label =
-                            group.x == 0 ? 'Income' : 'Expense';
+                        final label = group.x == 0 ? 'Income' : 'Expense';
                         return BarTooltipItem(
                           '$label\n${formatCurrency.format(rod.toY)}',
                           TextStyle(

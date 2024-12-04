@@ -64,7 +64,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               WalletBalanceCard(
                   wallets: wallets, onWalletSelected: _handleWalletSelection),
               const SizedBox(height: 16),
-              ReportCard(uid: uid),
               transactionAsyncValue.when(
                 data: (transactions) {
                   final filteredTransactions = selectedWallet != null
@@ -88,9 +87,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           ),
                         )
                       else ...[
-                        const RecentTransactionsWidget(),
-                        const SizedBox(height: 16),
-                        const TopSpendingWidget(),
+                        ReportCardWidget(selectedWallet: selectedWallet),
+                        TopSpendingWidget(selectedWallet: selectedWallet),
+                        RecentTransactionsWidget(
+                            selectedWallet: selectedWallet),
                       ],
                     ],
                   );

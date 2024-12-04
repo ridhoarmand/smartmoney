@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:smartmoney/features/wallet/models/wallet.dart';
 
 import '../../../auth/providers/auth_provider.dart';
 import '../../../category/service_providers/category_service_provider.dart';
@@ -10,50 +11,54 @@ import '../../../transaction/service_providers/transaction_service_providers.dar
 import '../../../category/models/category.dart';
 
 class TopSpendingWidget extends ConsumerStatefulWidget {
-  const TopSpendingWidget({super.key});
+  final Wallet? selectedWallet;
+
+  const TopSpendingWidget({
+    super.key,
+    this.selectedWallet,
+  });
 
   @override
   ConsumerState<TopSpendingWidget> createState() => _TopSpendingWidgetState();
 }
 
-class _TopSpendingWidgetState extends ConsumerState<TopSpendingWidget>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _TopSpendingWidgetState extends ConsumerState<TopSpendingWidget> {
+  bool isWeekly = true;
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
+  List<UserTransaction> _filterWeeklyTransactions(
+      List<UserTransaction> transactions) {
+    final now = DateTime.now();
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+    // Hitung awal minggu (Senin)
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+
+    // Ambil transaksi dengan tanggal setelah Senin awal minggu ini
+    return transactions
+        .where((t) => t.date.isAfter(startOfWeek))
+        .where((t) => t.date.isBefore(now.add(const Duration(days: 1))))
+        .where((t) => t.categoryType == 'Expense')
+        .toList();
   }
 
   List<UserTransaction> _filterTransactions(
       List<UserTransaction> transactions, int monthsAgo) {
     final now = DateTime.now();
+
+    // Tentukan awal dan akhir bulan
     final startOfMonth = DateTime(now.year, now.month - monthsAgo, 1);
     final endOfMonth = DateTime(now.year, now.month - monthsAgo + 1, 0);
 
-    return transactions
-        .where(
-            (t) => t.date.isAfter(startOfMonth) && t.date.isBefore(endOfMonth))
-        .where((t) => t.categoryType == 'Expense')
-        .toList();
-  }
+    var filtered = transactions
+        .where((t) =>
+            t.date.isAfter(startOfMonth.subtract(const Duration(days: 1))) &&
+            t.date.isBefore(endOfMonth.add(const Duration(days: 1))))
+        .where((t) => t.categoryType == 'Expense');
 
-  List<UserTransaction> _filterWeeklyTransactions(
-      List<UserTransaction> transactions) {
-    final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    if (widget.selectedWallet != null) {
+      filtered = filtered.where((t) => t.walletId == widget.selectedWallet!.id);
+    }
 
-    return transactions
-        .where((t) => t.date.isAfter(startOfWeek))
-        .where((t) => t.categoryType == 'Expense')
-        .toList();
+    return filtered.toList();
   }
 
   Map<String, dynamic> _aggregateByParentCategory(
@@ -90,7 +95,7 @@ class _TopSpendingWidgetState extends ConsumerState<TopSpendingWidget>
     final categoryTotals =
         _aggregateByParentCategory(filteredTransactions, categories);
 
-    // Sort by amount and take top 5
+    // Sort and take top 5 categories
     final sortedCategories = categoryTotals.entries.toList()
       ..sort((a, b) => b.value['total'].compareTo(a.value['total']));
     final topSpending = sortedCategories.take(5).toList();
@@ -99,15 +104,10 @@ class _TopSpendingWidgetState extends ConsumerState<TopSpendingWidget>
     final totalSpending =
         topSpending.fold(0.0, (sum, entry) => sum + entry.value['total']);
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: topSpending.length,
-      itemBuilder: (context, index) {
-        final categoryTotal = topSpending[index];
+    return Column(
+      children: topSpending.map((categoryTotal) {
         final percentage = (categoryTotal.value['total'] / totalSpending * 100)
             .toStringAsFixed(1);
-
         return ListTile(
           leading: CircleAvatar(
             backgroundColor: Colors.transparent,
@@ -127,12 +127,13 @@ class _TopSpendingWidgetState extends ConsumerState<TopSpendingWidget>
             ),
           ),
         );
-      },
+      }).toList(),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final uid = ref.watch(authRepositoryProvider).currentUser?.uid;
 
     if (uid == null) {
@@ -151,10 +152,15 @@ class _TopSpendingWidgetState extends ConsumerState<TopSpendingWidget>
                       return const SizedBox.shrink();
                     }
 
+                    final filteredTransactions = isWeekly
+                        ? _filterWeeklyTransactions(transactions)
+                        : _filterTransactions(transactions, 0);
+
                     return Card(
                       margin: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Padding(
                             padding: const EdgeInsets.all(12),
@@ -176,30 +182,51 @@ class _TopSpendingWidgetState extends ConsumerState<TopSpendingWidget>
                               ],
                             ),
                           ),
-                          TabBar(
-                            controller: _tabController,
-                            labelColor: Theme.of(context).primaryColor,
-                            tabs: const [
-                              Tab(text: 'Weekly'),
-                              Tab(text: 'Month'),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      isWeekly = true;
+                                    });
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: isWeekly
+                                        ? theme.colorScheme.primary
+                                            .withOpacity(0.8)
+                                        : theme.colorScheme.onSurface
+                                            .withOpacity(0.2),
+                                    foregroundColor: isWeekly
+                                        ? theme.colorScheme.onPrimary
+                                        : theme.colorScheme.onSurface,
+                                  ),
+                                  child: const Text('Week'),
+                                ),
+                              ),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      isWeekly = false;
+                                    });
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: !isWeekly
+                                        ? theme.colorScheme.primary
+                                            .withOpacity(0.8)
+                                        : theme.colorScheme.onSurface
+                                            .withOpacity(0.2),
+                                    foregroundColor: !isWeekly
+                                        ? theme.colorScheme.onPrimary
+                                        : theme.colorScheme.onSurface,
+                                  ),
+                                  child: const Text('Month'),
+                                ),
+                              ),
                             ],
                           ),
-                          SizedBox(
-                            height: 250,
-                            child: TabBarView(
-                              controller: _tabController,
-                              children: [
-                                _buildSpendingList(
-                                  _filterWeeklyTransactions(transactions),
-                                  categories,
-                                ),
-                                _buildSpendingList(
-                                  _filterTransactions(transactions, 0),
-                                  categories,
-                                ),
-                              ],
-                            ),
-                          ),
+                          _buildSpendingList(filteredTransactions, categories),
                         ],
                       ),
                     );
