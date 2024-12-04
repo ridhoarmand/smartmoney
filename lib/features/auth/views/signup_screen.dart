@@ -29,7 +29,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
         if (result != null) {
           // Navigasi ke halaman home jika signup berhasil
-          context.go('/home');
+          context.go('/dashboard');
         } else {
           _showError('Signup failed');
         }

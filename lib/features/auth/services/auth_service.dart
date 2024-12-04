@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../../../core/initials_data_templates.dart';
+
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -82,6 +84,11 @@ class AuthService extends ChangeNotifier {
       final UserCredential userCredential =
           await _auth.signInWithCredential(credential);
 
+      // Check if the user is new
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        saveTemplateData();
+      }
+
       // Reload user data
       await _auth.currentUser?.reload();
 
@@ -104,6 +111,7 @@ class AuthService extends ChangeNotifier {
         password: password,
       );
       notifyListeners();
+      saveTemplateData();
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw _handleFirebaseAuthException(e);
