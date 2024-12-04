@@ -232,7 +232,7 @@ class _UpdateTransactionScreenState
       keyboardType: TextInputType.number,
       decoration: const InputDecoration(
         labelText: 'Amount',
-        prefixIcon: Icon(Icons.attach_money),
+        prefixText: 'Rp ',
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {

@@ -115,21 +115,21 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _balanceController,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                 ],
                 decoration: const InputDecoration(
                   labelText: 'Saldo',
                   hintText: '0.00',
+                  prefixText: 'Rp ',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Masukkan saldo';
                   }
                   try {
-                    final amount = double.parse(value);
+                    final amount = num.parse(value);
                     if (amount < 0) {
                       return 'Saldo tidak boleh negatif';
                     }

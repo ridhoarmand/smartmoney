@@ -35,6 +35,16 @@ class MyApp extends ConsumerWidget {
           darkTheme: AppTheme.dark,
           routerConfig: router,
           debugShowCheckedModeBanner: false,
+          builder: (context, child) {
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 600, // Maksimal lebar aplikasi
+                ),
+                child: child,
+              ),
+            );
+          },
         );
       },
       loading: () => const Center(

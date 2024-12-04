@@ -7,7 +7,6 @@ class CurrencySelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final currencies = [
       {'name': 'Inconesian Rupiah', 'symbol': 'Rp', 'flag': '🇮🇩'},
-      {'name': 'United State Dollar', 'symbol': '\$', 'flag': '🇺🇸'},
     ];
 
     return Scaffold(
