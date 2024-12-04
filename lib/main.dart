@@ -36,12 +36,17 @@ class MyApp extends ConsumerWidget {
           routerConfig: router,
           debugShowCheckedModeBanner: false,
           builder: (context, child) {
-            return Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: 600, // Maksimal lebar aplikasi
+            return Container(
+              color: theme.currentTheme == ThemeMode.dark
+                  ? Colors.black
+                  : Colors.white,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: 600, // Maksimal lebar aplikasi
+                  ),
+                  child: child,
                 ),
-                child: child,
               ),
             );
           },

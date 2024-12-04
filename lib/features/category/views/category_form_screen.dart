@@ -49,6 +49,54 @@ class CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
             .name;
   }
 
+  Future<void> _handleDelete() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Category'),
+        content: const Text('Are you sure you want to delete this category?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final success = await ref
+                  .read(categoryProvider.notifier)
+                  .deleteCategory(widget.uid, widget.category!.id);
+
+              if (context.mounted) {
+                Navigator.pop(context); // Close dialog
+
+                if (success) {
+                  Navigator.pop(context); // Close form
+                } else {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Cannot Delete Category'),
+                      content: const Text(
+                          'This category is currently being used in transactions. '
+                          'Please delete or update the associated transactions first.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -192,33 +240,7 @@ class CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
               if (widget.category != null) const SizedBox(height: 16.0),
               if (widget.category != null)
                 ElevatedButton(
-                  onPressed: () {
-                    // Modal dialog to confirm deletion
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Delete Category'),
-                        content: const Text(
-                            'Are you sure you want to delete this category?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              ref
-                                  .read(categoryProvider.notifier)
-                                  .deleteCategory(
-                                      widget.uid, widget.category!.id);
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Delete'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                  onPressed: _handleDelete,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(50),
                     foregroundColor: Colors.red,

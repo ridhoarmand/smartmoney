@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 
 class UserTransaction {
   final String id;
   final String categoryId;
   final String categoryName;
   final String categoryType;
+  final IconData categoryIcon;
   final String description;
   final num amount;
   final DateTime date;
@@ -17,6 +19,7 @@ class UserTransaction {
     required this.categoryId,
     required this.categoryName,
     required this.categoryType,
+    required this.categoryIcon,
     required this.description,
     required this.amount,
     required this.date,
@@ -33,6 +36,8 @@ class UserTransaction {
       categoryId: data['categoryId'] ?? '',
       categoryName: data['categoryName'] ?? 'Unknown Category',
       categoryType: data['categoryType'] ?? 'Unknown Type',
+      categoryIcon:
+          IconData(data['categoryIcon'] ?? 0, fontFamily: 'MaterialIcons'),
       description: data['description'] ?? 'No Description',
       amount: data['amount']?.toDouble() ?? 0.0,
       date: (data['date'] as Timestamp).toDate(),

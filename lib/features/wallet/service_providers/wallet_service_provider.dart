@@ -31,18 +31,26 @@ class WalletNotifier extends StateNotifier<List<Wallet>> {
     await fetchWallets(uid);
   }
 
-  // cek wallet yang dipilih apakah sudah ada ditransaksi
-  Future<bool> checkWallet(String uid, String id) async {
-    final snapshot = await _firestore
+  Future<bool> isWalletUsedInTransactions(String uid, String walletId) async {
+    final transactionsSnapshot = await _firestore
         .collection('users/$uid/transactions')
-        .where('walletId', isEqualTo: id)
+        .where('walletId', isEqualTo: walletId)
+        .limit(1)
         .get();
-    return snapshot.docs.isNotEmpty;
+
+    return transactionsSnapshot.docs.isNotEmpty;
   }
 
-  Future<void> deleteWallet(String uid, String id) async {
+  Future<bool> deleteWallet(String uid, String id) async {
+    final isUsed = await isWalletUsedInTransactions(uid, id);
+
+    if (isUsed) {
+      return false;
+    }
+
     await _firestore.collection('users/$uid/wallets').doc(id).delete();
     await fetchWallets(uid);
+    return true;
   }
 }
 

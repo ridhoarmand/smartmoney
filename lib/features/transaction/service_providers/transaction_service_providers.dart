@@ -1,5 +1,4 @@
-// transaction_service_providers.dart
-
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -65,12 +64,13 @@ final transactionStreamProvider =
       return transactions.map((transaction) {
         final walletData = walletMap[transaction.walletId];
         final categoryData = categoryMap[transaction.categoryId];
-
         return UserTransaction(
           id: transaction.id,
           categoryId: transaction.categoryId,
           categoryName: categoryData?['name'] ?? 'Unknown Category',
           categoryType: categoryData?['type'] ?? 'Unknown Type',
+          categoryIcon:
+              IconData(categoryData?['icon'] ?? 0, fontFamily: 'MaterialIcons'),
           description: transaction.description,
           amount: transaction.amount,
           date: transaction.date,

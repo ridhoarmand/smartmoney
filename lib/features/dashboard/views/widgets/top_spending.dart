@@ -110,8 +110,8 @@ class _TopSpendingWidgetState extends ConsumerState<TopSpendingWidget> {
             .toStringAsFixed(1);
         return ListTile(
           leading: CircleAvatar(
-            backgroundColor: Colors.transparent,
-            child: Icon(categoryTotal.value['icon'], color: Colors.red),
+            backgroundColor: Colors.red,
+            child: Icon(categoryTotal.value['icon'], color: Colors.white),
           ),
           title: Text(categoryTotal.key),
           subtitle: Text(NumberFormat.currency(

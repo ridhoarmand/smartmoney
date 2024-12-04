@@ -121,7 +121,7 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
                 ],
                 decoration: const InputDecoration(
                   labelText: 'Saldo',
-                  hintText: '0.00',
+                  hintText: '1000000',
                   prefixText: 'Rp ',
                 ),
                 validator: (value) {
@@ -189,12 +189,34 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ref
+            onPressed: () async {
+              Navigator.pop(context); // Close confirmation dialog
+
+              final success = await ref
                   .read(walletProvider.notifier)
                   .deleteWallet(widget.uid, widget.wallet!.id);
-              Navigator.pop(context);
+
+              if (context.mounted) {
+                if (success) {
+                  Navigator.pop(context); // Close form screen
+                } else {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Tidak Dapat Menghapus Dompet'),
+                      content: const Text(
+                          'Dompet ini sedang digunakan dalam transaksi. '
+                          'Harap hapus atau ubah transaksi terkait terlebih dahulu.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              }
             },
             child: const Text('Hapus', style: TextStyle(color: Colors.red)),
           ),

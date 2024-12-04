@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/category.dart';
 
-// PROVIDER
 final categoryProvider =
     StateNotifierProvider<CategoryNotifier, List<Category>>(
   (ref) => CategoryNotifier(),
@@ -37,13 +36,30 @@ class CategoryNotifier extends StateNotifier<List<Category>> {
     }
   }
 
-  Future<void> deleteCategory(String uid, String id) async {
+  Future<bool> isCategoryUsedInTransactions(
+      String uid, String categoryId) async {
+    final transactionsSnapshot = await _firestore
+        .collection('users/$uid/transactions')
+        .where('categoryId', isEqualTo: categoryId)
+        .limit(1)
+        .get();
+
+    return transactionsSnapshot.docs.isNotEmpty;
+  }
+
+  Future<bool> deleteCategory(String uid, String id) async {
+    final isUsed = await isCategoryUsedInTransactions(uid, id);
+
+    if (isUsed) {
+      return false;
+    }
+
     await _firestore.collection('users/$uid/categories').doc(id).delete();
     state = state.where((category) => category.id != id).toList();
+    return true;
   }
 }
 
-// PROVIDER untuk mengambil stream kategori berdasarkan UID pengguna
 final categoryStreamProvider =
     StreamProvider.family<List<Category>, String>((ref, uid) {
   final firestore = FirebaseFirestore.instance;
@@ -53,8 +69,7 @@ final categoryStreamProvider =
       .snapshots()
       .map((snapshot) {
     return snapshot.docs.map((doc) {
-      return Category.fromFirestore(
-          doc.data()..['id'] = doc.id); // Add 'id' from document ID
+      return Category.fromFirestore(doc.data()..['id'] = doc.id);
     }).toList();
   });
 });

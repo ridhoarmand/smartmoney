@@ -328,9 +328,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                                           ? Colors.green
                                           : Colors.red,
                                   child: Icon(
-                                    transaction.categoryType == 'Income'
-                                        ? Icons.arrow_downward
-                                        : Icons.arrow_upward,
+                                    transaction.categoryIcon,
                                     color: Colors.white,
                                   ),
                                 ),

@@ -244,7 +244,10 @@ class _TopSpendingDetailsScreenState
                                                       100)
                                                   .toStringAsFixed(1);
                                           return ListTile(
-                                            leading: Icon(entry.value['icon']),
+                                            leading: CircleAvatar(
+                                                backgroundColor: Colors.red,
+                                                child:
+                                                    Icon(entry.value['icon'])),
                                             title: Text(entry.key),
                                             subtitle: Text('$percentage%'),
                                             trailing: Text(
