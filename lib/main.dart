@@ -37,15 +37,19 @@ class MyApp extends ConsumerWidget {
           debugShowCheckedModeBanner: false,
           builder: (context, child) {
             return Container(
-              color: theme.currentTheme == ThemeMode.dark
-                  ? Colors.black
-                  : Colors.white,
+              color: Theme.of(context).scaffoldBackgroundColor,
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(
-                    maxWidth: 600, // Maksimal lebar aplikasi
+                    maxWidth: 550, // Maksimal lebar aplikasi
                   ),
-                  child: child,
+                  child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).secondaryHeaderColor,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(10)),
+                      ),
+                      child: child),
                 ),
               ),
             );
