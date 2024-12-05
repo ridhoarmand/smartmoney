@@ -84,15 +84,16 @@ class AuthService extends ChangeNotifier {
       final UserCredential userCredential =
           await _auth.signInWithCredential(credential);
 
+      // Reload user data
+      await _auth.currentUser?.reload();
+
+      notifyListeners();
+
       // Check if the user is new
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
         saveTemplateData();
       }
 
-      // Reload user data
-      await _auth.currentUser?.reload();
-
-      notifyListeners();
       return userCredential;
     } catch (e) {
       if (kDebugMode) {

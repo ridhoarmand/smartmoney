@@ -3,19 +3,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../auth/providers/auth_provider.dart';
 import '../models/user_transaction_model.dart';
 
 /// **Transaction Stream Provider**
 final transactionStreamProvider =
     StreamProvider.family<List<UserTransaction>, String>((ref, uid) {
+  final uid = ref.watch(authRepositoryProvider).currentUser!.uid;
   final firestore = FirebaseFirestore.instance;
+  print('StreamProvider Called');
 
   return firestore
       .collection('users/$uid/transactions')
       .orderBy('date', descending: true)
       .snapshots()
-      .asyncMap((snapshot) async {
-    // Jika tidak ada dokumen, kembalikan list kosong
+      .handleError((error) {
+    // Log error dan coba ulang jika error terjadi
+    debugPrint('Stream error: $error');
+  }).asyncMap((snapshot) async {
     if (snapshot.docs.isEmpty) {
       return <UserTransaction>[];
     }

@@ -61,8 +61,24 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
 
         return walletsAsyncValue.when(
           loading: () => const CircularProgressIndicator(),
-          error: (error, stack) => Text('Error: $error'),
+          error: (error, stack) =>
+              const Text('Something went wrong, please try again later'),
           data: (wallets) {
+            // Jika tidak ada data wallet, tampilkan pesan khusus
+            if (wallets.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'No Wallets Found',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }
+
+            // Perhitungan total balance
             num totalBalance = 0;
             if (selectedWallet == 'All Wallets') {
               totalBalance = wallets.fold(
@@ -220,8 +236,7 @@ class _TransactionScreenState extends ConsumerState<TransactionScreen> {
                   Center(child: Text('Error loading transactions: $error')),
               data: (transactions) {
                 if (transactions.isEmpty) {
-                  return const Center(
-                      child: Text('No transactions available.'));
+                  return const Center(child: Text('No Transaction Found.'));
                 }
 
                 final filteredTransactions =

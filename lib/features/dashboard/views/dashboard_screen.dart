@@ -80,7 +80,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             padding: EdgeInsets.all(16.0),
                             child: Center(
                               child: Text(
-                                'Belum ada transaksi',
+                                'No Transactions Found',
                                 style: TextStyle(fontSize: 16),
                               ),
                             ),

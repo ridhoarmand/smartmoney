@@ -57,6 +57,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.1
   pie_chart: ^5.4.0
   fl_chart: ^0.69.2
+  firebase_app_check: ^0.3.1+7
 
 dev_dependencies:
   flutter_test:
