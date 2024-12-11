@@ -36,7 +36,8 @@ class _ReportDetailsState extends ConsumerState<ReportDetails> {
             data: (transactions) {
               final now = DateTime.now();
               final startOfWeek =
-                  now.subtract(Duration(days: now.weekday)); // Start of week
+                  now.subtract(Duration(days: now.weekday - 1)); // Start of week
+              final endOfWeek = now.add(Duration(days: 6));
               final startOfMonth =
                   DateTime(now.year, now.month, 1); // Start of month
               final currentYear = now.year;
@@ -54,8 +55,8 @@ class _ReportDetailsState extends ConsumerState<ReportDetails> {
                 final date = transaction.date;
 
                 if (selectedFilter == 'Week' &&
-                    (date.isAfter(startOfWeek) ||
-                        date.isAtSameMomentAs(startOfWeek))) {
+                    date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) && // Inclusive start
+                    date.isBefore(endOfWeek.add(const Duration(seconds: 1)))) {
                   filteredTransactions.add(transaction);
                 } else if (selectedFilter == 'Month' &&
                     (date.isAfter(startOfMonth) ||
@@ -85,10 +86,9 @@ class _ReportDetailsState extends ConsumerState<ReportDetails> {
                   }
                 }
 
-                if (date.isAfter(startOfWeek) ||
-                    date.isAtSameMomentAs(startOfWeek)) {
-                  final dayIndex =
-                      date.difference(startOfWeek).inDays.clamp(0, 6);
+                if (date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
+                    date.isBefore(endOfWeek.add(const Duration(seconds: 1)))) {
+                  final dayIndex = date.weekday - 1;
                   if (transaction.categoryType == 'Income') {
                     weeklyIncome[dayIndex] += transaction.amount;
                   } else if (transaction.categoryType == 'Expense') {
@@ -352,7 +352,7 @@ class _ReportDetailsState extends ConsumerState<ReportDetails> {
                                                   : Colors.red,
                                             ),
                                           ),
-                                          title: Text(transaction.description),
+                                          title: Text(transaction.description.isNotEmpty ? transaction.description : transaction.categoryName), 
                                           subtitle: Text(DateFormat.yMMMd()
                                               .format(transaction.date)),
                                           trailing: Text(
