@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../transaction/service_providers/transaction_service_providers.dart';
 import '../../../wallet/models/wallet.dart';
+import '../../views/report_details.dart';
 
 class ReportCardWidget extends ConsumerStatefulWidget {
   final Wallet? selectedWallet;
@@ -113,6 +114,11 @@ class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
                 TextButton(
                   onPressed: () {
                     // TODO: Navigate to details screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ReportDetails()),
+                    );
                   },
                   child: const Text(
                     'See details',
@@ -195,6 +201,9 @@ class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
                     ),
                   ],
                   titlesData: FlTitlesData(
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
@@ -218,7 +227,9 @@ class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
                   borderData: FlBorderData(show: false),
                   barTouchData: BarTouchData(
                     touchTooltipData: BarTouchTooltipData(
-                      tooltipMargin: 10,
+                      tooltipMargin: 0,
+                      fitInsideHorizontally: true,
+                      fitInsideVertically: true,
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         final label = group.x == 0 ? 'Income' : 'Expense';
                         return BarTooltipItem(
