@@ -14,12 +14,21 @@ class SignUpScreen extends ConsumerStatefulWidget {
 
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isLoading = false; // Tambahkan variabel loading
 
   Future<void> _signUp() async {
+    // Periksa apakah sudah dalam proses loading
+    if (_isLoading) return;
+
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true; // Aktifkan loading state
+      });
+
       try {
         final authRepository = ref.read(authRepositoryProvider);
         final result = await authRepository.signUp(
@@ -28,13 +37,15 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         );
 
         if (result != null) {
-          // Navigasi ke halaman home jika signup berhasil
+          // Update user profile with name
+          await result.user?.updateDisplayName(_nameController.text);
+          // Navigate to dashboard after successful signup
           context.go('/dashboard');
         } else {
           _showError('Signup failed');
         }
       } on FirebaseAuthException catch (e) {
-        // Menangani error spesifik Firebase
+        // Handle Firebase specific errors
         if (e.code == 'email-already-in-use') {
           _showError('This email is already in use.');
         } else if (e.code == 'weak-password') {
@@ -43,7 +54,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           _showError('Error: ${e.message}');
         }
       } catch (e) {
-        _showError('Error: $e.code');
+        _showError('Error: $e');
+      } finally {
+        // Matikan loading state di blok finally
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -108,13 +124,26 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     return Column(
       children: [
         TextFormField(
-          controller: _emailController,
+          controller: _nameController,
           decoration: const InputDecoration(
-            hintText: 'Masukan Email Anda',
+            hintText: 'Enter your full name',
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Harap Masukan Email Anda';
+              return 'Please enter your name';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 20),
+        TextFormField(
+          controller: _emailController,
+          decoration: const InputDecoration(
+            hintText: 'Enter your email',
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your email';
             }
             return null;
           },
@@ -124,7 +153,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           controller: _passwordController,
           obscureText: !_isPasswordVisible,
           decoration: InputDecoration(
-            hintText: 'Masukan Password Anda',
+            hintText: 'Enter your password',
             suffixIcon: IconButton(
               icon: Icon(
                 _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -153,17 +182,19 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       height: 50,
       width: double.infinity,
       child: FilledButton(
-        onPressed: _signUp,
+        onPressed: _isLoading ? null : _signUp,
         style: FilledButton.styleFrom(
           backgroundColor: Theme.of(context).primaryColor,
         ),
-        child: const Text(
-          'SIGN UP',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text(
+                'SIGN UP',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ),
     );
   }
@@ -178,9 +209,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             children: [
               const Text('Already have an account?'),
               TextButton(
-                onPressed: () {
-                  context.go('/signin');
-                },
+                onPressed: _isLoading
+                    ? null
+                    : () {
+                        context.go('/signin');
+                      },
                 child: const Text('Sign In'),
               ),
             ],
