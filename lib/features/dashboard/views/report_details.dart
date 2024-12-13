@@ -55,9 +55,9 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
         child: Column(
           children: [
             _buildFilterButtons(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             _buildReportChart(reportData),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             _buildTransactionSection(reportData.filteredTransactions),
           ],
         ),
@@ -100,7 +100,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(4.0),
+        padding: const EdgeInsets.all(16),
         child: SizedBox(
           height: MediaQuery.of(context).size.height * 0.4,
           child: SingleChildScrollView(
@@ -197,6 +197,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const SizedBox(height: 8),
             _buildTransactionTypeButtons(),
             const SizedBox(height: 4),
             _buildTransactionList(filteredTransactions),
@@ -211,7 +212,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: ['Income', 'Expense'].map((type) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: ElevatedButton(
             onPressed: () => setState(() => _selectedTransactionType = type),
             style: _getTransactionTypeButtonStyle(type),
