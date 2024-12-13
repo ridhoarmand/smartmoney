@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/providers/auth_provider.dart';
@@ -11,7 +11,6 @@ final transactionStreamProvider =
     StreamProvider.family<List<UserTransaction>, String>((ref, uid) {
   final uid = ref.watch(authRepositoryProvider).currentUser!.uid;
   final firestore = FirebaseFirestore.instance;
-  print('StreamProvider Called');
 
   return firestore
       .collection('users/$uid/transactions')

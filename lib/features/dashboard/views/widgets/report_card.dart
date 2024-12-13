@@ -1,12 +1,12 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../auth/providers/auth_provider.dart';
 import '../../../transaction/service_providers/transaction_service_providers.dart';
 import '../../../wallet/models/wallet.dart';
-import '../../views/report_details.dart';
 
 class ReportCardWidget extends ConsumerStatefulWidget {
   final Wallet? selectedWallet;
@@ -112,22 +112,11 @@ class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 TextButton(
-                  onPressed: () {
-                    // TODO: Navigate to details screen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ReportDetails()),
-                    );
-                  },
-                  child: const Text(
-                    'See details',
-                  ),
+                  onPressed: () => context.push('/report-transactions'),
+                  child: const Text('See Details'),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-
             // Toggle Buttons
             Row(
               children: [
@@ -169,11 +158,11 @@ class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
 
             // Bar Chart
             SizedBox(
-              height: 250,
+              height: 200,
               child: BarChart(
                 BarChartData(
                   barGroups: [

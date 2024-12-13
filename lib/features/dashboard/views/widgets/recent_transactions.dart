@@ -21,9 +21,9 @@ class RecentTransactionsWidget extends ConsumerWidget {
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
 
-    if (date.isAfter(today)) {
+    if (date.isAtSameMomentAs(today)) {
       return 'Today';
-    } else if (date.isAfter(yesterday)) {
+    } else if (date.isAtSameMomentAs(yesterday)) {
       return 'Yesterday';
     } else {
       return DateFormat('dd MMM yyyy').format(date);

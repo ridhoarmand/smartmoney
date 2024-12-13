@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smartmoney/features/dashboard/views/report_details.dart';
 
+import '../features/account/views/account_screen.dart';
 import '../features/account/views/darkmode_screen.dart';
 import '../features/account/views/edit_profile_screen.dart';
-import '../features/account/views/account_screen.dart';
 import '../features/auth/views/forgot_password_screen.dart';
 import '../features/auth/views/signin_screen.dart';
 import '../features/auth/views/signup_screen.dart';
 import '../features/auth/views/splash_screen.dart';
 import '../features/category/views/category_screen.dart';
+import '../features/dashboard/views/dashboard_screen.dart';
 import '../features/dashboard/views/top_spending_details.dart';
 import '../features/home/views/home_screen.dart';
-import '../features/dashboard/views/dashboard_screen.dart';
 import '../features/transaction/views/add_transaction_screen.dart';
 import '../features/transaction/views/transaction_screen.dart';
 import '../features/wallet/views/wallet_screen.dart';
@@ -121,6 +122,10 @@ class AppRouter {
             GoRoute(
               path: '/setting/darkmode',
               builder: (context, state) => const DarkModeScreen(),
+            ),
+            GoRoute(
+              path: '/report-transactions',
+              builder: (context, state) => const ReportDetailsScreen(),
             ),
             GoRoute(
               path: '/top-spending',

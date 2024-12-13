@@ -75,8 +75,7 @@ class _WalletBalanceCardState extends ConsumerState<WalletBalanceCard> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: onPrimary, width: 1),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<Wallet?>(
                           value: selectedWallet,
@@ -115,7 +114,7 @@ class _WalletBalanceCardState extends ConsumerState<WalletBalanceCard> {
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Row(
                   children: [
                     Text(
@@ -140,7 +139,7 @@ class _WalletBalanceCardState extends ConsumerState<WalletBalanceCard> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                 child: Text(
                   isBalanceVisible
                       ? formatToRupiah(displayedBalance)
