@@ -4,10 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:pie_chart/pie_chart.dart';
 
 import '../../auth/providers/auth_provider.dart';
+import '../../category/models/category.dart';
 import '../../category/service_providers/category_service_provider.dart';
 import '../../transaction/models/user_transaction_model.dart';
 import '../../transaction/service_providers/transaction_service_providers.dart';
-import '../../category/models/category.dart';
 
 class TopSpendingDetailsScreen extends ConsumerStatefulWidget {
   const TopSpendingDetailsScreen({super.key});
@@ -22,11 +22,11 @@ class _TopSpendingDetailsScreenState
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _showParentCategories = true;
+  bool _isDetailsExpanded = true;
 
   @override
   void initState() {
     super.initState();
-    // Reverse tab order and ensure most recent month is at the right-most tab
     _tabController = TabController(length: 12, initialIndex: 11, vsync: this);
   }
 
@@ -89,6 +89,106 @@ class _TopSpendingDetailsScreenState
       ..sort((a, b) => b.value['total'].compareTo(a.value['total']));
 
     return Map.fromEntries(sortedCategories);
+  }
+
+  Widget _buildCategoryBreakdownWidget(
+      Map<String, dynamic> categoryTotals, double totalSpending) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      height:
+          _isDetailsExpanded ? MediaQuery.of(context).size.height * 0.5 : 100,
+      child: GestureDetector(
+        onVerticalDragUpdate: (details) {
+          setState(() {
+            // If dragging down, collapse the widget
+            _isDetailsExpanded = details.delta.dy > 0 ? false : true;
+          });
+        },
+        child: Container(
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Column(
+            children: [
+              // Drag indicator
+              Container(
+                width: 50,
+                height: 6,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: categoryTotals.entries.length,
+                  itemBuilder: (context, index) {
+                    final entry = categoryTotals.entries.toList()[index];
+                    final percentage =
+                        (entry.value['total'] / totalSpending * 100)
+                            .toStringAsFixed(1);
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      child: Row(
+                        children: [
+                          // Vertical line
+                          Container(
+                            width: 2,
+                            height: 50,
+                            color: Colors
+                                .primaries[index % Colors.primaries.length],
+                          ),
+                          const SizedBox(width: 16),
+
+                          // Category icon
+                          CircleAvatar(
+                            backgroundColor: Colors
+                                .primaries[index % Colors.primaries.length]
+                                .withOpacity(0.2),
+                            child: Icon(entry.value['icon'],
+                                color: Colors.primaries[
+                                    index % Colors.primaries.length]),
+                          ),
+                          const SizedBox(width: 16),
+
+                          // Category name and amount
+                          Expanded(
+                              child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(entry.key,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              Text(
+                                  NumberFormat.currency(
+                                    locale: 'id_ID',
+                                    symbol: 'Rp ',
+                                    decimalDigits: 0,
+                                  ).format(entry.value['total']),
+                                  style: TextStyle(color: Colors.grey[600]))
+                            ],
+                          )),
+
+                          // Percentage
+                          Text('$percentage%',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.primaries[
+                                      index % Colors.primaries.length]))
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -158,7 +258,6 @@ class _TopSpendingDetailsScreenState
                                     categories,
                                     _showParentCategories);
 
-                                // Calculate total and daily average
                                 final totalSpending = categoryTotals.values
                                     .fold(0.0,
                                         (sum, value) => sum + value['total']);
@@ -174,7 +273,6 @@ class _TopSpendingDetailsScreenState
                                 final dailyAverage =
                                     totalSpending / daysInMonth;
 
-                                // Prepare data for pie chart with percentages
                                 final dataMap =
                                     categoryTotals.map((key, value) {
                                   final percentage = (value['total'] /
@@ -190,6 +288,7 @@ class _TopSpendingDetailsScreenState
 
                                 return Column(
                                   children: [
+                                    // Total dan rata-rata harian
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 16, vertical: 8),
@@ -198,26 +297,39 @@ class _TopSpendingDetailsScreenState
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            'Total: ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(totalSpending)}',
+                                            'Total: ${NumberFormat.currency(
+                                              locale: 'id_ID',
+                                              symbol: 'Rp ',
+                                              decimalDigits: 0,
+                                            ).format(totalSpending)}',
                                             style: const TextStyle(
                                                 fontWeight: FontWeight.bold),
                                           ),
                                           Text(
-                                            'Avg/Day: ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(dailyAverage)}',
+                                            'Avg/Day: ${NumberFormat.currency(
+                                              locale: 'id_ID',
+                                              symbol: 'Rp ',
+                                              decimalDigits: 0,
+                                            ).format(dailyAverage)}',
                                             style: const TextStyle(
                                                 fontWeight: FontWeight.bold),
                                           ),
                                         ],
                                       ),
                                     ),
-                                    if (dataMap.isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.all(32),
+
+                                    // Pie Chart
+                                    if (dataMap.isNotEmpty) ...[
+                                      Expanded(
+                                        flex: 2,
                                         child: PieChart(
                                           dataMap: dataMap,
                                           colorList: colorList,
                                           chartType: ChartType.disc,
-                                          chartRadius: 240,
+                                          chartRadius: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.7,
                                           ringStrokeWidth: 32,
                                           chartValuesOptions:
                                               const ChartValuesOptions(
@@ -228,42 +340,24 @@ class _TopSpendingDetailsScreenState
                                             decimalPlaces: 1,
                                             showChartValuesInPercentage: true,
                                           ),
+                                          legendOptions: LegendOptions(
+                                            showLegendsInRow: false,
+                                            legendPosition: _isDetailsExpanded
+                                                ? LegendPosition.right
+                                                : LegendPosition.bottom,
+                                            showLegends: true,
+                                            legendShape: BoxShape.circle,
+                                            legendTextStyle: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    const Divider(),
-                                    Expanded(
-                                      child: ListView.builder(
-                                        itemCount:
-                                            categoryTotals.entries.length,
-                                        itemBuilder: (context, index) {
-                                          final entry = categoryTotals.entries
-                                              .toList()[index];
-                                          final percentage =
-                                              (entry.value['total'] /
-                                                      totalSpending *
-                                                      100)
-                                                  .toStringAsFixed(1);
-                                          return ListTile(
-                                            leading: CircleAvatar(
-                                                backgroundColor: Colors.red,
-                                                child:
-                                                    Icon(entry.value['icon'])),
-                                            title: Text(entry.key),
-                                            subtitle: Text('$percentage%'),
-                                            trailing: Text(
-                                              NumberFormat.currency(
-                                                locale: 'id_ID',
-                                                symbol: 'Rp ',
-                                                decimalDigits: 0,
-                                              ).format(entry.value['total']),
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
+                                    ],
+
+                                    // Category Breakdown Widget
+                                    _buildCategoryBreakdownWidget(
+                                        categoryTotals, totalSpending)
                                   ],
                                 );
                               }),

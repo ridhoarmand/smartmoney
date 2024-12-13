@@ -100,9 +100,9 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(4.0),
         child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.5,
+          height: MediaQuery.of(context).size.height * 0.4,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: _buildBarChart(reportData),
@@ -194,16 +194,13 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildTransactionTypeButtons(),
-              const SizedBox(height: 16),
-              _buildTransactionList(filteredTransactions),
-            ],
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildTransactionTypeButtons(),
+            const SizedBox(height: 4),
+            _buildTransactionList(filteredTransactions),
+          ],
         ),
       ),
     );
@@ -249,8 +246,6 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
 
   Widget _buildTransactionItem(dynamic transaction) {
     return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       color: Theme.of(context).colorScheme.surfaceBright,
       child: ListTile(
         leading: _buildTransactionLeadingIcon(transaction),
@@ -267,7 +262,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
             decimalDigits:
                 transaction.amount == transaction.amount.toInt() ? 0 : 2,
           ).format(transaction.amount),
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 14),
         ),
       ),
     );
