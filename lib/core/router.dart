@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smartmoney/features/account/views/about_screen.dart';
 import 'package:smartmoney/features/dashboard/views/report_details.dart';
 
 import '../features/account/views/account_screen.dart';
@@ -130,7 +131,11 @@ class AppRouter {
             GoRoute(
               path: '/top-spending',
               builder: (context, state) => const TopSpendingDetailsScreen(),
-            )
+            ),
+            GoRoute(
+              path: '/about',
+              builder: (context, state) => const AboutScreen(),
+            ),
           ],
         );
 }

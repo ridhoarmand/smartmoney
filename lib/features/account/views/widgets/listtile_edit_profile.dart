@@ -66,9 +66,9 @@ class ListTileEditProfil extends ConsumerWidget {
 
       if (result == true) {
         if (context.mounted) {
-          // Jika hasilnya true, artinya profil telah diperbarui.
-          // Memperbarui state dengan memanggil ref.refresh untuk menyegarkan profil pengguna
-          ref.refresh(authRepositoryProvider);
+          // Memperbarui state profil pengguna
+          ref.invalidate(authRepositoryProvider);
+          ref.read(authRepositoryProvider);
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

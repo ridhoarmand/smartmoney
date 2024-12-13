@@ -6,6 +6,7 @@ class ProfileFormField extends StatelessWidget {
     required this.controller,
     required this.label,
     required this.hint,
+    this.keyboardType = TextInputType.text,
     this.prefixIcon,
     this.validator,
     this.obscureText = false,
@@ -15,6 +16,7 @@ class ProfileFormField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
   final String hint;
+  final TextInputType? keyboardType;
   final IconData? prefixIcon;
   final String? Function(String?)? validator;
   final bool obscureText;
@@ -25,6 +27,7 @@ class ProfileFormField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

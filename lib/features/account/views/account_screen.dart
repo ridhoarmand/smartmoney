@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/providers/auth_provider.dart';
+import 'widgets/listtile_about_apps.dart';
 import 'widgets/listtile_darkmode.dart';
 import 'widgets/listtile_edit_profile.dart';
 import 'widgets/listtile_signout.dart';
 import 'widgets/listtile_wallet.dart';
+import 'widgets/listtile_change_email.dart';
+import 'widgets/listtile_change_password.dart';
 
-// Widget untuk AppBar di halaman Account
 class AppbarAccountScreen extends StatelessWidget
     implements PreferredSizeWidget {
   const AppbarAccountScreen({super.key});
@@ -23,7 +25,6 @@ class AppbarAccountScreen extends StatelessWidget
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
-// Widget untuk Body di halaman Account
 class BodyAccountScreen extends ConsumerWidget {
   const BodyAccountScreen({super.key});
 
@@ -41,7 +42,13 @@ class BodyAccountScreen extends ConsumerWidget {
             const Divider(),
             ListTileWallet(uid: authRepository.currentUser!.uid),
             const Divider(),
+            ListTileChangeEmail(user: authRepository.currentUser!),
+            const Divider(),
+            ListTileChangePassword(user: authRepository.currentUser!),
+            const Divider(),
             const ListTileDarkMode(),
+            const Divider(),
+            const ListTileAboutApps(),
             const Divider(),
             ListTileSignOut(authRepository: authRepository),
           ],
