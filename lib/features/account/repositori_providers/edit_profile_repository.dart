@@ -1,9 +1,14 @@
-
+// edit_profile_repository.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/edit_profile_service.dart';
+
+final editProfileRepositoryProvider =
+    StateNotifierProvider<EditProfileRepository, bool>((ref) {
+  return EditProfileRepository(ref);
+});
 
 class EditProfileRepository extends StateNotifier<bool> {
   EditProfileRepository(this.ref) : super(false);
@@ -14,11 +19,6 @@ class EditProfileRepository extends StateNotifier<bool> {
   Future<void> updateProfile({
     required User user,
     required String name,
-    required String email,
-    required String currentPassword,
-    required String newPassword,
-    required bool changeEmail,
-    required bool changePassword,
     required dynamic imageFile,
     required Function(String) onError,
     required Function() onSuccess,
@@ -36,14 +36,6 @@ class EditProfileRepository extends StateNotifier<bool> {
 
       if (name != user.displayName) {
         await user.updateDisplayName(name);
-      }
-
-      if (changeEmail && email != user.email) {
-        await _service.updateUserEmail(user, email, currentPassword);
-      }
-
-      if (changePassword) {
-        await _service.updateUserPassword(user, currentPassword, newPassword);
       }
 
       onSuccess();

@@ -1,3 +1,4 @@
+// edit_profile_service.dart
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,7 +18,6 @@ class EditProfileService {
       final storageRef =
           _storage.ref().child('profile_pictures').child('$uid.jpg');
 
-      // Set metadata dengan content type image/jpeg
       final metadata = SettableMetadata(
           contentType: 'image/jpeg',
           customMetadata: {'picked-file-path': 'profile_pictures/$uid.jpg'});
@@ -36,25 +36,5 @@ class EditProfileService {
       debugPrint('Error uploading image: $e');
       return null;
     }
-  }
-
-  Future<void> updateUserEmail(
-      User user, String newEmail, String currentPassword) async {
-    final credential = EmailAuthProvider.credential(
-      email: user.email!,
-      password: currentPassword,
-    );
-    await user.reauthenticateWithCredential(credential);
-    await user.verifyBeforeUpdateEmail(newEmail);
-  }
-
-  Future<void> updateUserPassword(
-      User user, String currentPassword, String newPassword) async {
-    final credential = EmailAuthProvider.credential(
-      email: user.email!,
-      password: currentPassword,
-    );
-    await user.reauthenticateWithCredential(credential);
-    await user.updatePassword(newPassword);
   }
 }
