@@ -154,12 +154,9 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
       bottomTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
-          getTitlesWidget: (value, meta) => Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Text(
-              reportData.labelFormatter(value.toInt()),
-              style: const TextStyle(fontSize: 12),
-            ),
+          getTitlesWidget: (value, meta) => Text(
+            reportData.labelFormatter(value.toInt()),
+            style: const TextStyle(fontSize: 16),
           ),
         ),
       ),
@@ -295,8 +292,12 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
 
   ReportData _processTransactionData(List<dynamic> transactions) {
     final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-    final endOfWeek = now.add(const Duration(days: 6));
+    final startOfWeek =
+        DateTime(now.year, now.month, now.day - (now.weekday - 1));
+    // Hitung endOfWeek (Minggu pukul 23:59:59)
+    final endOfWeek = startOfWeek
+        .add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+
     final startOfMonth = DateTime(now.year, now.month, 1);
     final currentYear = now.year;
 

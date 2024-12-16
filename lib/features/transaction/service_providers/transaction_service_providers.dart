@@ -16,9 +16,11 @@ final transactionStreamProvider =
       .collection('users/$uid/transactions')
       .orderBy('date', descending: true)
       .snapshots()
-      .handleError((error) {
-    // Log error dan coba ulang jika error terjadi
+      .handleError((error, stackTrace) {
+    // Log error and handle it appropriately
     debugPrint('Stream error: $error');
+    debugPrint('Stack trace: $stackTrace');
+    return <UserTransaction>[]; // Return an empty list on error
   }).asyncMap((snapshot) async {
     if (snapshot.docs.isEmpty) {
       return <UserTransaction>[];
@@ -30,12 +32,10 @@ final transactionStreamProvider =
         return UserTransaction.fromFirestore(data, doc.id);
       }).toList();
 
-      // Jika tidak ada transaksi, kembalikan list kosong
       if (transactions.isEmpty) {
         return <UserTransaction>[];
       }
 
-      // Ambil wallet dan kategori secara paralel
       final walletIds = transactions.map((e) => e.walletId).toSet();
       final categoryIds = transactions.map((e) => e.categoryId).toSet();
 
@@ -49,10 +49,8 @@ final transactionStreamProvider =
           .where(FieldPath.documentId, whereIn: categoryIds.toList())
           .get();
 
-      // Tunggu semua dokumen diambil
       final results = await Future.wait([walletsFuture, categoriesFuture]);
 
-      // Buat map dari dokumen yang diambil
       final walletDocs = results[0].docs;
       final categoryDocs = results[1].docs;
 
@@ -64,7 +62,6 @@ final transactionStreamProvider =
         for (var doc in categoryDocs) doc.id: doc.data(),
       };
 
-      // Perbarui data transaksi dengan informasi tambahan
       return transactions.map((transaction) {
         final walletData = walletMap[transaction.walletId];
         final categoryData = categoryMap[transaction.categoryId];
@@ -83,8 +80,9 @@ final transactionStreamProvider =
           imagePath: transaction.imagePath,
         );
       }).toList();
-    } catch (e) {
-      // Tangani kesalahan dengan mengembalikan list kosong
+    } catch (e, stackTrace) {
+      debugPrint('Error processing transactions: $e');
+      debugPrint('Stack trace: $stackTrace');
       return <UserTransaction>[];
     }
   });
