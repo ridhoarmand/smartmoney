@@ -24,19 +24,25 @@ class TopSpendingWidget extends ConsumerStatefulWidget {
 
 class _TopSpendingWidgetState extends ConsumerState<TopSpendingWidget> {
   bool isWeekly = true;
-
   List<UserTransaction> _filterWeeklyTransactions(
       List<UserTransaction> transactions) {
+    // Dapatkan tanggal hari ini
     final now = DateTime.now();
 
-    // Hitung awal minggu (Senin)
-    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    // Hitung startOfWeek (Senin pukul 00:00) untuk minggu saat ini
+    final startOfWeek =
+        DateTime(now.year, now.month, now.day - (now.weekday - 1));
 
-    // Ambil transaksi dengan tanggal setelah Senin awal minggu ini
+    // Hitung endOfWeek (Minggu pukul 23:59:59)
+    final endOfWeek = startOfWeek
+        .add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+
+    // Ambil transaksi pengeluaran dalam rentang minggu ini
     return transactions
-        .where((t) => t.date.isAfter(startOfWeek))
-        .where((t) => t.date.isBefore(now.add(const Duration(days: 1))))
-        .where((t) => t.categoryType == 'Expense')
+        .where((t) =>
+            t.date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
+            t.date.isBefore(endOfWeek.add(const Duration(seconds: 1))) &&
+            t.categoryType == 'Expense')
         .toList();
   }
 
@@ -89,7 +95,10 @@ class _TopSpendingWidgetState extends ConsumerState<TopSpendingWidget> {
   Widget _buildSpendingList(
       List<UserTransaction> filteredTransactions, List<Category> categories) {
     if (filteredTransactions.isEmpty) {
-      return const Center(child: Text('No transactions found'));
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: Text('No transactions found')),
+      );
     }
 
     final categoryTotals =

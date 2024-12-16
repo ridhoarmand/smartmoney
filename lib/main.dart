@@ -1,7 +1,10 @@
+import 'dart:ui';
+
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
 
 import 'core/router_provider.dart';
 import 'core/shared_preference_provider.dart';
@@ -15,7 +18,12 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  FirebaseAppCheck.instance.activate();
+  if (!kIsWeb) {
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.debug,
+    );
+  }
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -38,6 +46,12 @@ class MyApp extends ConsumerWidget {
           darkTheme: AppTheme.dark,
           routerConfig: router,
           debugShowCheckedModeBanner: false,
+          scrollBehavior: const MaterialScrollBehavior().copyWith(
+            dragDevices: {
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.touch,
+            },
+          ),
           builder: (context, child) {
             return Container(
               color: Theme.of(context).scaffoldBackgroundColor,

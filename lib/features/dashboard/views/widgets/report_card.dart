@@ -35,8 +35,8 @@ class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
           data: (transactions) {
             // Filter transactions by date range
             DateTime now = DateTime.now();
-            DateTime startOfWeek =
-                now.subtract(Duration(days: now.weekday - 1));
+            final startOfWeek =
+                DateTime(now.year, now.month, now.day - (now.weekday - 1));
             DateTime startOfMonth = DateTime(now.year, now.month, 1);
 
             // Calculate totals
