@@ -152,6 +152,7 @@ class AuthService extends ChangeNotifier {
 
   // Helper method to handle Firebase Auth exceptions
   String _handleFirebaseAuthException(FirebaseAuthException e) {
+    print(e.code);
     switch (e.code) {
       case 'invalid-credential':
         return 'Invalid credentials. Please check your email and password.';

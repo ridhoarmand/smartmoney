@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +11,13 @@ import 'core/router_provider.dart';
 import 'core/shared_preference_provider.dart';
 import 'core/theme.dart';
 import 'core/theme_provider.dart';
-import 'firebase_options.dart';
+import 'firebase_options.dart'; // Ensure this is included for initialization.
+
+Future<void> backgroundMessageHandler(RemoteMessage message) async {
+  if (kDebugMode) {
+    print("Background message: ${message.notification?.title}");
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +25,20 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Request permissions (iOS specific)
   if (!kIsWeb) {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    await messaging.getToken().then((value) {
+      if (kDebugMode) {
+        print('Token: $value');
+      }
+    });
+    await messaging.requestPermission();
+
+    // Set background message handler
+    FirebaseMessaging.onBackgroundMessage(backgroundMessageHandler);
+
+    // Initialize Firebase App Check for added security (you already have it in your code)
     await FirebaseAppCheck.instance.activate(
       androidProvider: AndroidProvider.debug,
     );
