@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../core/initials_data_templates.dart';
+import '../../../core/remote_config_service.dart';
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final RemoteConfigService _remoteConfigService = RemoteConfigService();
 
   // Define scopes for Google Sign In
   static const List<String> scopes = <String>[
@@ -15,17 +17,8 @@ class AuthService extends ChangeNotifier {
     'openid',
   ];
 
-  // Initialize Google Sign In with web client ID
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId:
-        '601522394171-9hmhg1sias624f4fjrh18pl9frr03eu6.apps.googleusercontent.com',
-    // Replace with your web client ID
-    scopes: [
-      'email',
-      'profile',
-      'openid',
-    ],
-  );
+  // GoogleSignIn instance will be initialized after getting clientId from RemoteConfig
+  late final GoogleSignIn _googleSignIn;
 
   // Current user getter
   User? get currentUser => _auth.currentUser;
@@ -35,6 +28,26 @@ class AuthService extends ChangeNotifier {
 
   // Check if user is signed in
   bool get isSignedIn => _auth.currentUser != null;
+
+  // Initialize AuthService (asynchronous) to set up googleSignIn clientId
+  Future<void> initialize() async {
+    // Initialize RemoteConfigService and fetch the Google Sign-In Client ID
+    await _remoteConfigService.initialize();
+
+    // Get the Google Sign-In Client ID from Remote Config
+    String? googleSignInClientId =
+        await _remoteConfigService.getGoogleSignInClientId();
+
+    if (googleSignInClientId == null) {
+      throw Exception('Google Sign-In Client ID is null');
+    }
+
+    // Initialize GoogleSignIn with the fetched client ID
+    _googleSignIn = GoogleSignIn(
+      clientId: googleSignInClientId,
+      scopes: scopes,
+    );
+  }
 
   // Sign in with Google
   Future<UserCredential?> signInWithGoogle() async {
@@ -152,7 +165,9 @@ class AuthService extends ChangeNotifier {
 
   // Helper method to handle Firebase Auth exceptions
   String _handleFirebaseAuthException(FirebaseAuthException e) {
-    print(e.code);
+    if (kDebugMode) {
+      print(e.code);
+    }
     switch (e.code) {
       case 'invalid-credential':
         return 'Invalid credentials. Please check your email and password.';

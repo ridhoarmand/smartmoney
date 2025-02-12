@@ -11,6 +11,8 @@ android {
     ndkVersion = "27.0.12077973"
 
     compileOptions {
+        coreLibraryDesugaringEnabled true
+
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -42,4 +44,5 @@ apply plugin: 'com.google.gms.google-services' // Firebase plugin
 
 dependencies {
     implementation 'com.google.firebase:firebase-messaging:24.1.0'  // Firebase Messaging
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
 }
