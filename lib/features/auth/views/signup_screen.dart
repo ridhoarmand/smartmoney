@@ -40,6 +40,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           // Update user profile with name
           await result.user?.updateDisplayName(_nameController.text);
           // Navigate to dashboard after successful signup
+          if (!mounted) return;
           context.go('/dashboard');
         } else {
           _showError('Signup failed');

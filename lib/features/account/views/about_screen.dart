@@ -5,7 +5,7 @@ class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
   void _copyURLToClipboard(BuildContext context) async {
-    const url = 'https://github.com/ridhoarmand/smartmoney';
+    const url = '';
     await Clipboard.setData(const ClipboardData(text: url));
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -58,7 +58,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Project Akhir kegiatan Kampus Merdeka, Studi Independen dari Kemendikbud dan IOS & Android Mobile Developer by PT Mojadi Aplikasi Indonesia atau MojadiApp/MojadiPro',
+                    'Project Akhir Studi Independen Batch 7 MSIB Kampus Merdeka, learning path IOS & Android Mobile Developer by PT Mojadi Aplikasi Indonesia atau MojadiApp/MojadiPro',
                     style: TextStyle(fontSize: 16),
                   ),
                 ],
@@ -75,7 +75,7 @@ class AboutScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Team Members',
+                    'Project By',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -85,22 +85,6 @@ class AboutScreen extends StatelessWidget {
                   _buildTeamMember(
                     'Putri Cahyaning Tyas',
                     'ITSNU Pekalongan',
-                  ),
-                  _buildTeamMember(
-                    'Ridho Armansyah',
-                    'Universitas Amikom Purwokerto',
-                  ),
-                  _buildTeamMember(
-                    'Mayhikal Ferdiananta',
-                    'Universitas Pembangunan Nasional "Veteran" Jawa Timur',
-                  ),
-                  _buildTeamMember(
-                    'Erditya Eka Pratama',
-                    'Universitas Teknologi Mataram',
-                  ),
-                  _buildTeamMember(
-                    'Muhamad Ridho Dwi Putra',
-                    'Universitas Ahmad Dahlan',
                   ),
                 ],
               ),
@@ -138,7 +122,7 @@ class AboutScreen extends StatelessWidget {
             child: ListTile(
               leading: const Icon(Icons.code),
               title: const Text('Source Code'),
-              subtitle: const Text('github.com/ridhoarmand/smartmoney'),
+              subtitle: const Text(''),
               onTap: () => _copyURLToClipboard(context), // Fixed here
             ),
           ),

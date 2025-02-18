@@ -21,6 +21,8 @@ class ListTileSignOut extends ConsumerWidget {
       onTap: () async {
         try {
           await authRepository.signOut();
+          if (!context.mounted) return;
+          // Cek apakah masih mounted sebelum menggunakan context
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Logout success'),

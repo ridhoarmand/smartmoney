@@ -190,7 +190,7 @@ class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
                     ),
                   ],
                   titlesData: FlTitlesData(
-                    topTitles: AxisTitles(
+                    topTitles: const AxisTitles(
                       sideTitles: SideTitles(showTitles: false),
                     ),
                     bottomTitles: AxisTitles(
