@@ -18,7 +18,7 @@ class AuthService extends ChangeNotifier {
   ];
 
   // GoogleSignIn instance will be initialized after getting clientId from RemoteConfig
-  late final GoogleSignIn _googleSignIn;
+  GoogleSignIn? _googleSignIn;
 
   // Current user getter
   User? get currentUser => _auth.currentUser;
@@ -52,18 +52,24 @@ class AuthService extends ChangeNotifier {
   // Sign in with Google
   Future<UserCredential?> signInWithGoogle() async {
     try {
+      // Make sure we're initialized
+      if (_googleSignIn == null) {
+        await initialize();
+      }
+
       GoogleSignInAccount? googleUser;
 
       if (kIsWeb) {
         // Web-specific sign in flow
         try {
-          googleUser ??= await _googleSignIn.signIn();
+          googleUser ??= await _googleSignIn!.signIn();
 
           // Check for required scopes authorization
-          final bool isAuthorized = await _googleSignIn.canAccessScopes(scopes);
+          final bool isAuthorized =
+              await _googleSignIn!.canAccessScopes(scopes);
 
           if (!isAuthorized) {
-            final bool granted = await _googleSignIn.requestScopes(scopes);
+            final bool granted = await _googleSignIn!.requestScopes(scopes);
             if (!granted) {
               throw Exception('Required permissions not granted');
             }
@@ -76,7 +82,7 @@ class AuthService extends ChangeNotifier {
         }
       } else {
         // Mobile sign in flow
-        googleUser = await _googleSignIn.signIn();
+        googleUser = await _googleSignIn!.signIn();
       }
 
       if (googleUser == null) {
@@ -150,10 +156,12 @@ class AuthService extends ChangeNotifier {
   // Sign Out
   Future<void> signOut() async {
     try {
-      await Future.wait([
-        _auth.signOut(),
-        _googleSignIn.signOut(),
-      ]);
+      await _auth.signOut();
+
+      if (_googleSignIn != null) {
+        await _googleSignIn!.signOut();
+      }
+
       notifyListeners();
     } catch (e) {
       if (kDebugMode) {

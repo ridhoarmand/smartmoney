@@ -3,6 +3,8 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../firebase_options.dart';
+
 class RemoteConfigService {
   static final RemoteConfigService _instance = RemoteConfigService._internal();
 
@@ -12,22 +14,41 @@ class RemoteConfigService {
 
   RemoteConfigService._internal();
 
-  late final FirebaseRemoteConfig _remoteConfig;
+  // Use nullable instead of late
+  FirebaseRemoteConfig? _remoteConfig;
   String? _googleSignInClientId;
 
   Future<void> initialize() async {
-    await Firebase.initializeApp();
+    // Initialize Firebase first
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    // Initialize remote config
     _remoteConfig = FirebaseRemoteConfig.instance;
 
     try {
-      await _remoteConfig.fetchAndActivate();
-      // Ambil nilai 'google_signin_client_id' dari Remote Config
-      _googleSignInClientId =
-          _remoteConfig.getString('google_signin_client_id');
+      // Set default values if needed
+      await _remoteConfig?.setConfigSettings(RemoteConfigSettings(
+        fetchTimeout: const Duration(minutes: 1),
+        minimumFetchInterval: const Duration(hours: 1),
+      ));
 
-      // Menyimpan nilai Google Sign-In Client ID ke SharedPreferences
+      // Fetch and activate
+      await _remoteConfig?.fetchAndActivate();
+
+      // Get the client ID
+      _googleSignInClientId =
+          _remoteConfig?.getString('google_signin_client_id');
+
+      // Store in SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       prefs.setString('googleSignInClientId', _googleSignInClientId ?? '');
+
+      if (kDebugMode) {
+        print(
+            'Remote config initialized with client ID: $_googleSignInClientId');
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error fetching remote config: $e');
@@ -36,6 +57,12 @@ class RemoteConfigService {
   }
 
   Future<String?> getGoogleSignInClientId() async {
+    // Try to get from memory first
+    if (_googleSignInClientId != null) {
+      return _googleSignInClientId;
+    }
+
+    // Fall back to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('googleSignInClientId');
   }
