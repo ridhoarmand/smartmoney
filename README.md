@@ -1,5 +1,4 @@
 # SmartMoney - Finance Management App
-
 ![SmartMoney Logo](assets/logo.png)
 
 ## 🚀 Introduction
@@ -33,23 +32,27 @@ SmartMoney is a comprehensive personal finance management application built with
 ## 📊 Key Features Breakdown
 
 ### Wallet Management
+
 - Create multiple wallets with custom names and icons
 - Set different currencies for different wallets
 - Track balance across all wallets or individually
 
 ### Transaction Management
+
 - Add income or expense transactions
 - Categorize transactions (pre-defined and custom categories)
 - Add descriptions and attach receipts/images
 - Filter transactions by date, type, or category
 
 ### Visual Reports
+
 - Income vs Expense bar charts
 - Spending breakdown by category
 - Weekly/Monthly/Yearly financial trends
 - Top spending analysis
 
 ### User Experience
+
 - Intuitive interface with clean design
 - Fast navigation between features
 - Secure data handling
@@ -72,11 +75,13 @@ This is a final project for the Kampus Merdeka Independent Study program from th
 ## 🏗️ Setup and Installation
 
 1. Clone the repository
+
    ```
    git clone https://github.com/ridhoarmand/smartmoney.git
    ```
 
 2. Install dependencies
+
    ```
    flutter pub get
    ```
@@ -88,10 +93,10 @@ This is a final project for the Kampus Merdeka Independent Study program from th
 
 ## 📱 Supported Platforms
 
-- Android
-- iOS
-- Web (experimental)
+- Mobile (Android, iOS)
+- Web
+- Desktop (Windows, macOS, Linux)
 
 ## 📄 License
 
-Copyright © 2024 SmartMoney Team. All rights reserved.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
