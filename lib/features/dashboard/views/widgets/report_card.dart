@@ -127,13 +127,17 @@ class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
                         isWeekly = true;
                       });
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isWeekly
-                          ? theme.colorScheme.primary.withOpacity(0.8)
-                          : theme.colorScheme.onSurface.withOpacity(0.2),
-                      foregroundColor: isWeekly
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSurface,
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(
+                        isWeekly
+                            ? theme.colorScheme.primary.withOpacity(0.8)
+                            : theme.colorScheme.onSurface.withOpacity(0.2),
+                      ),
+                      foregroundColor: WidgetStateProperty.all(
+                        isWeekly
+                            ? theme.colorScheme.onPrimary
+                            : theme.colorScheme.onSurface,
+                      ),
                     ),
                     child: const Text('Week'),
                   ),
@@ -145,13 +149,17 @@ class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
                         isWeekly = false;
                       });
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: !isWeekly
-                          ? theme.colorScheme.primary.withOpacity(0.8)
-                          : theme.colorScheme.onSurface.withOpacity(0.2),
-                      foregroundColor: !isWeekly
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSurface,
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(
+                        !isWeekly
+                            ? theme.colorScheme.primary.withOpacity(0.8)
+                            : theme.colorScheme.onSurface.withOpacity(0.2),
+                      ),
+                      foregroundColor: WidgetStateProperty.all(
+                        !isWeekly
+                            ? theme.colorScheme.onPrimary
+                            : theme.colorScheme.onSurface,
+                      ),
                     ),
                     child: const Text('Month'),
                   ),
@@ -190,7 +198,7 @@ class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
                     ),
                   ],
                   titlesData: FlTitlesData(
-                    topTitles: AxisTitles(
+                    topTitles: const AxisTitles(
                       sideTitles: SideTitles(showTitles: false),
                     ),
                     bottomTitles: AxisTitles(
