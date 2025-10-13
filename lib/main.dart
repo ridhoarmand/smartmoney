@@ -7,7 +7,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod/src/framework.dart';
 
 import 'core/notification_service.dart';
 import 'core/remote_config_service.dart';
@@ -74,49 +73,55 @@ void main() async {
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
-  ProviderListenable? get themeProvider => null;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sharedPrefs = ref.watch(sharedPreferencesProvider);
+    final themeAsync = ref.watch(themeProvider);
 
     return sharedPrefs.when(
       data: (prefs) {
         final router = ref.watch(goRouterProvider);
-        final theme = ref.watch(themeProvider!);
 
-        return MaterialApp.router(
-          title: 'Smart Money',
-          themeMode: theme.currentTheme,
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
-          routerConfig: router,
-          debugShowCheckedModeBanner: false,
-          scrollBehavior: const MaterialScrollBehavior().copyWith(
-            dragDevices: {
-              PointerDeviceKind.mouse,
-              PointerDeviceKind.touch,
+        return themeAsync.when(
+          data: (theme) => MaterialApp.router(
+            title: 'Smart Money',
+            themeMode: theme,
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            routerConfig: router,
+            debugShowCheckedModeBanner: false,
+            scrollBehavior: const MaterialScrollBehavior().copyWith(
+              dragDevices: {
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.touch,
+              },
+            ),
+            builder: (context, child) {
+              return Container(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: 550, // Maksimal lebar aplikasi
+                    ),
+                    child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).secondaryHeaderColor,
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(10)),
+                        ),
+                        child: child),
+                  ),
+                ),
+              );
             },
           ),
-          builder: (context, child) {
-            return Container(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: 550, // Maksimal lebar aplikasi
-                  ),
-                  child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).secondaryHeaderColor,
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(10)),
-                      ),
-                      child: child),
-                ),
-              ),
-            );
-          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => MaterialApp(
+            home: Scaffold(
+              body: Center(child: Text('Theme error: $error')),
+            ),
+          ),
         );
       },
       loading: () => const Center(

@@ -1,19 +1,16 @@
-// ========= KODE FINAL AUTH_SERVICE.DART (VERSI BERSIH) =========
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
-import 'package.flutter/material.dart';
-import 'package.google_sign_in/google_sign_in.dart';
+import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
-// Ganti dengan path import yang benar untuk proyek Anda
-import '../../../core/initials_data_templates.dart';
-import '../../../core/remote_config_service.dart';
+import 'package:smartmoney/core/initials_data_templates.dart';
+import 'package:smartmoney/core/remote_config_service.dart';
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final RemoteConfigService _remoteConfigService = RemoteConfigService();
 
-  static const List<String> scopes = <String>['email', 'profile', 'openid'];
+  static const List<String> scopes = <String>['email', 'profile'];
   GoogleSignIn? _googleSignIn;
 
   User? get currentUser => _auth.currentUser;
@@ -22,16 +19,7 @@ class AuthService extends ChangeNotifier {
 
   Future<void> initialize() async {
     await _remoteConfigService.initialize();
-    String? googleSignInClientId =
-        await _remoteConfigService.getGoogleSignInClientId();
-
-    if (googleSignInClientId == null) {
-      throw Exception('Google Sign-In Client ID tidak ditemukan');
-    }
-
-    // MEMASTIKAN CONSTRUCTOR BENAR
     _googleSignIn = GoogleSignIn(
-      clientId: googleSignInClientId,
       scopes: scopes,
     );
   }
@@ -121,6 +109,3 @@ class AuthService extends ChangeNotifier {
     }
   }
 }
-
-// PASTIKAN TIDAK ADA KODE 'EXTENSION' APAPUN DI SINI.
-// FILE HARUS BERAKHIR DI BARIS INI.
