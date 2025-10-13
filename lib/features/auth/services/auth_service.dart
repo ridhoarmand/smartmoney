@@ -110,7 +110,7 @@ class AuthService extends ChangeNotifier {
 
       // Check if the user is new
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
-        saveTemplateData();
+        await saveTemplateData();
       }
 
       return userCredential;
@@ -131,7 +131,7 @@ class AuthService extends ChangeNotifier {
         password: password,
       );
       notifyListeners();
-      saveTemplateData();
+      await saveTemplateData();
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw _handleFirebaseAuthException(e);
