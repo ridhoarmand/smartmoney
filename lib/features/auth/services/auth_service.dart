@@ -134,7 +134,7 @@ class AuthService extends ChangeNotifier {
       saveTemplateData();
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      throw _handleFirebaseAuthException(e);
+      throw Exception(_handleFirebaseAuthException(e));
     }
   }
 
@@ -149,7 +149,7 @@ class AuthService extends ChangeNotifier {
       notifyListeners();
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      throw _handleFirebaseAuthException(e);
+      throw Exception(_handleFirebaseAuthException(e));
     }
   }
 
