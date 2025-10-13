@@ -1,202 +1,126 @@
- 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
-import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+// ========= KODE FINAL AUTH_SERVICE.DART (VERSI BERSIH) =========
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package.flutter/material.dart';
+import 'package.google_sign_in/google_sign_in.dart';
+
+// Ganti dengan path import yang benar untuk proyek Anda
 import '../../../core/initials_data_templates.dart';
 import '../../../core/remote_config_service.dart';
 
 class AuthService extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final RemoteConfigService _remoteConfigService = RemoteConfigService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final RemoteConfigService _remoteConfigService = RemoteConfigService();
 
-  // Define scopes for Google Sign In
-  static const List<String> scopes = <String>[
-    'email',
-    'profile',
-    'openid',
-  ];
+  static const List<String> scopes = <String>['email', 'profile', 'openid'];
+  GoogleSignIn? _googleSignIn;
 
-  // GoogleSignIn instance will be initialized after getting clientId from RemoteConfig
-  GoogleSignIn? _googleSignIn;
+  User? get currentUser => _auth.currentUser;
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  bool get isSignedIn => _auth.currentUser != null;
 
-  // Current user getter
-  User? get currentUser => _auth.currentUser;
+  Future<void> initialize() async {
+    await _remoteConfigService.initialize();
+    String? googleSignInClientId =
+        await _remoteConfigService.getGoogleSignInClientId();
 
-  // Authentication state stream
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+    if (googleSignInClientId == null) {
+      throw Exception('Google Sign-In Client ID tidak ditemukan');
+    }
 
-  // Check if user is signed in
-  bool get isSignedIn => _auth.currentUser != null;
+    // MEMASTIKAN CONSTRUCTOR BENAR
+    _googleSignIn = GoogleSignIn(
+      clientId: googleSignInClientId,
+      scopes: scopes,
+    );
+  }
 
-  // Initialize AuthService (asynchronous) to set up googleSignIn clientId
-  Future<void> initialize() async {
-    // Initialize RemoteConfigService and fetch the Google Sign-In Client ID
-    await _remoteConfigService.initialize();
+  Future<UserCredential?> signInWithGoogle() async {
+    try {
+      if (_googleSignIn == null) await initialize();
 
-    // Get the Google Sign-In Client ID from Remote Config
-    String? googleSignInClientId =
-        await _remoteConfigService.getGoogleSignInClientId();
+      final GoogleSignInAccount? googleUser = await _googleSignIn!.signIn();
 
-    if (googleSignInClientId == null) {
-      throw Exception('Google Sign-In Client ID is null');
-    }
+      if (googleUser == null) return null; // User membatalkan login
 
-    // Initialize GoogleSignIn with the fetched client ID
-    _googleSignIn = GoogleSignIn(
-      clientId: googleSignInClientId,
-      scopes: scopes,
-    );
-  }
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
 
-  // Sign in with Google
-  Future<UserCredential?> signInWithGoogle() async {
-    try {
-      // Make sure we're initialized
-      if (_googleSignIn == null) {
-        await initialize();
-      }
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+      await _auth.currentUser?.reload();
+      notifyListeners();
 
-      GoogleSignInAccount? googleUser;
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        saveTemplateData();
+      }
 
-      if (kIsWeb) {
-        // Web-specific sign in flow
-        try {
-          googleUser ??= await _googleSignIn!.signIn();
+      return userCredential;
+    } catch (e) {
+      if (kDebugMode) print('Error signInWithGoogle: $e');
+      rethrow;
+    }
+  }
 
-          // Check for required scopes authorization
-          final bool isAuthorized =
-              await _googleSignIn!.canAccessScopes(scopes);
+  Future<UserCredential> signUpWithEmail(String email, String password) async {
+    try {
+      final UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(email: email, password: password);
+      notifyListeners();
+      saveTemplateData();
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthException(e);
+    }
+  }
 
-          if (!isAuthorized) {
-            final bool granted = await _googleSignIn!.requestScopes(scopes);
-            if (!granted) {
-              throw Exception('Required permissions not granted');
-            }
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print('Web Google Sign In error: $e');
-          }
-          rethrow;
-        }
-      } else {
-        // Mobile sign in flow
-        googleUser = await _googleSignIn!.signIn();
-      }
+  Future<UserCredential> signInWithEmail(String email, String password) async {
+    try {
+      final UserCredential userCredential = await _auth
+          .signInWithEmailAndPassword(email: email, password: password);
+      notifyListeners();
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthException(e);
+    }
+  }
 
-      if (googleUser == null) {
-        return null;
-      }
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+      await _googleSignIn?.signOut();
+      notifyListeners();
+    } catch (e) {
+      if (kDebugMode) print('Error signOut: $e');
+      rethrow;
+    }
+  }
 
-      // Get authentication details
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      // Create credential
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      // Sign in to Firebase
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
-
-      // Reload user data
-      await _auth.currentUser?.reload();
-
-      notifyListeners();
-
-      // Check if the user is new
-      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
-        saveTemplateData();
-      }
-
-      return userCredential;
-    } catch (e) {
-      if (kDebugMode) {
-        print('SignInWithGoogle error: $e');
-      }
-      rethrow;
-    }
-  }
-
-  // Email/Password Sign Up
-  Future<UserCredential> signUpWithEmail(String email, String password) async {
-    try {
-      final UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      notifyListeners();
-      saveTemplateData();
-      return userCredential;
-    } on FirebaseAuthException catch (e) {
-      throw _handleFirebaseAuthException(e);
-    }
-  }
-
-  // Email/Password Sign In
-  Future<UserCredential> signInWithEmail(String email, String password) async {
-    try {
-      final UserCredential userCredential =
-await _auth.signInWithEmailAndPassword(
-email: email,
- password: password,
-);
-notifyListeners();
-return userCredential;
- } on FirebaseAuthException catch (e) {
-throw _handleFirebaseAuthException(e);
-}
+  String _handleFirebaseAuthException(FirebaseAuthException e) {
+    if (kDebugMode) print('FirebaseAuthException: ${e.code}');
+    switch (e.code) {
+      case 'invalid-credential':
+        return 'Email atau password salah.';
+      case 'user-disabled':
+        return 'Akun ini telah dinonaktifkan.';
+      case 'user-not-found':
+        return 'Tidak ada akun dengan email ini.';
+      case 'wrong-password':
+        return 'Password yang dimasukkan salah.';
+      case 'email-already-in-use':
+        return 'Email ini sudah terdaftar.';
+      case 'weak-password':
+        return 'Password terlalu lemah.';
+      default:
+        return 'Terjadi kesalahan: ${e.message}';
+    }
+  }
 }
 
- // Sign Out
- Future<void> signOut() async {
-try {
- await _auth.signOut();
-
- if (_googleSignIn != null) {
- await _googleSignIn!.signOut();
-}
-
-notifyListeners();
- } catch (e) {
- if (kDebugMode) {
-print('Sign out error: $e');
- }
-rethrow;
-}
-}
- // Helper method to handle Firebase Auth exceptions String _handleFirebaseAuthException(FirebaseAuthException e) {
- if (kDebugMode) {
-print(e.code);
- }
-switch (e.code) {
-case 'invalid-credential':
-return 'Invalid credentials. Please check your email and password.';
-case 'user-disabled': return 'This account has been disabled.';
-case 'user-not-found':
- return 'No account found with this email.';
-      case 'wrong-password':
-        return 'Incorrect password.';
-      case 'email-already-in-use':
-        return 'An account already exists with this email.';
-      case 'operation-not-allowed':
-        return 'This operation is not allowed.';
-      case 'weak-password':
-        return 'Please choose a stronger password.';
-      default:
-        return 'An error occurred: ${e.message}';
- }
-}
-
-extension on GoogleSignIn {
-  Future signIn() {}
-
-  Future<bool> canAccessScopes(List<String> scopes) {}
-
-  Future<bool> requestScopes(List<String> scopes) {}
-}
+// PASTIKAN TIDAK ADA KODE 'EXTENSION' APAPUN DI SINI.
+// FILE HARUS BERAKHIR DI BARIS INI.

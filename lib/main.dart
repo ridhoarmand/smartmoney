@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import
+
 import 'dart:ui';
 
 import 'package:firebase_app_check/firebase_app_check.dart';
@@ -5,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod/src/framework.dart';
 
 import 'core/notification_service.dart';
 import 'core/remote_config_service.dart';
@@ -71,6 +74,8 @@ void main() async {
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
+  ProviderListenable? get themeProvider => null;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sharedPrefs = ref.watch(sharedPreferencesProvider);
@@ -78,7 +83,7 @@ class MyApp extends ConsumerWidget {
     return sharedPrefs.when(
       data: (prefs) {
         final router = ref.watch(goRouterProvider);
-        final theme = ref.watch(themeProvider);
+        final theme = ref.watch(themeProvider!);
 
         return MaterialApp.router(
           title: 'Smart Money',

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod/src/framework.dart';
 
-import '../../../../core/theme_provider.dart';
+import 'package:smartmoney/core/theme_provider.dart';
 
 class DarkModeScreen extends ConsumerWidget {
   const DarkModeScreen({super.key});
+
+  ProviderListenable? get themeProvider => null;
 
   void _handleThemeChange(WidgetRef ref, ThemeMode value) {
     ref.read(themeProvider).toggleTheme(value);
@@ -12,7 +15,7 @@ class DarkModeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = ref.watch(themeProvider);
+    final theme = ref.watch(themeProvider!);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -28,7 +31,7 @@ class DarkModeScreen extends ConsumerWidget {
             title: const Text('On'),
             value: ThemeMode.dark,
             groupValue: theme.currentTheme,
-            onChanged: (value) => _handleThemeChange(ref, value!),
+            onChanged: (value) => _handleThemeChange(ref, value!!),
           ),
           RadioListTile(
             title: const Text('Off'),
@@ -40,7 +43,7 @@ class DarkModeScreen extends ConsumerWidget {
             title: const Text('Use System Settings'),
             value: ThemeMode.system,
             groupValue: theme.currentTheme,
-            onChanged: (value) => _handleThemeChange(ref, value!!),
+            onChanged: (value) => _handleThemeChange(ref, value!),
           ),
         ],
       ),
