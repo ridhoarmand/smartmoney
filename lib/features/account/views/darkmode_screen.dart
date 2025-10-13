@@ -40,7 +40,7 @@ class DarkModeScreen extends ConsumerWidget {
             title: const Text('Use System Settings'),
             value: ThemeMode.system,
             groupValue: theme.currentTheme,
-            onChanged: (value) => _handleThemeChange(ref, value!),
+            onChanged: (value) => _handleThemeChange(ref, value!!),
           ),
         ],
       ),

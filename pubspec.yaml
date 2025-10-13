@@ -41,25 +41,25 @@ dependencies:
   flex_color_scheme: ^8.0.0
   shared_preferences: ^2.3.2
   collection: ^1.18.0
-  firebase_core: ^3.6.0
-  firebase_auth: ^5.3.2
-  google_sign_in: ^6.2.2
-  cloud_firestore: ^5.4.5
-  firebase_storage: ^12.3.5
-  go_router: ^14.4.1
-  flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
+  firebase_core: ^4.1.1
+  firebase_auth: ^6.1.0
+  google_sign_in: ^7.2.0
+  cloud_firestore: ^6.0.2
+  firebase_storage: ^13.0.2
+  go_router: ^16.2.4
+  flutter_riverpod: ^3.0.3
+  riverpod_annotation: ^3.0.3
   image_picker: ^1.1.2
-  intl: ^0.19.0
+  intl: ^0.20.2
   flutter_iconpicker: ^4.0.1
   image_picker_for_web: ^3.0.6
   flutter_launcher_icons: ^0.14.1
   pie_chart: ^5.4.0
-  fl_chart: ^0.69.2
-  firebase_app_check: ^0.3.1+7
-  firebase_messaging: ^15.2.2
-  flutter_local_notifications: ^18.0.1
-  firebase_remote_config: ^5.4.0
+  fl_chart: ^1.1.1
+  firebase_app_check: ^0.4.1
+  firebase_messaging: ^16.0.2
+  flutter_local_notifications: ^19.4.2
+  firebase_remote_config: ^6.0.2
 
 dev_dependencies:
   flutter_test:
@@ -70,11 +70,11 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
-  riverpod_generator: ^2.6.2
+  flutter_lints: ^6.0.0
+  riverpod_generator: ^3.0.3
   build_runner: ^2.4.13
-  custom_lint: ^0.7.0
-  riverpod_lint: ^2.6.2
+  custom_lint: ^0.8.0
+  riverpod_lint: ^3.0.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
