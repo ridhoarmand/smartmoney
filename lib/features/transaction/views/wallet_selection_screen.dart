@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../wallet/models/wallet.dart';
 import '../../wallet/service_providers/wallet_service_provider.dart';
+import 'export_data_screen.dart';
 
 class WalletSelectionScreen extends ConsumerStatefulWidget {
   const WalletSelectionScreen({super.key});
@@ -30,6 +31,18 @@ class WalletSelectionScreenState extends ConsumerState<WalletSelectionScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Select Wallet'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const ExportDataScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: _buildWalletView(wallets),
     );
