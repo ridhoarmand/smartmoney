@@ -51,7 +51,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
                           final picked = await showDatePicker(
                             context: context,
                             initialDate: _selectedExportDate,
-                            firstDate: DateTime(DateTime.now().year - 5),
+                            firstDate: DateTime(2025),
                             lastDate: DateTime(DateTime.now().year + 1, 12, 31),
                             initialDatePickerMode: DatePickerMode.year,
                           );

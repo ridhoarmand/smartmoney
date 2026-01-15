@@ -64,35 +64,43 @@ class ExportService {
 
   Future<String> _createCsv(
       List<model.Transaction> transactions, DateTime date) async {
-    // Header
-    List<List<dynamic>> rows = [
-      ['Tanggal', 'Tipe', 'Kategori', 'Nominal', 'Deskripsi', 'Dompet']
-    ];
+    try {
+      // Header
+      List<List<dynamic>> rows = [
+        ['Tanggal', 'Tipe', 'Kategori', 'Nominal', 'Deskripsi', 'Dompet']
+      ];
 
-    // Data
-    for (final tx in transactions) {
-      rows.add([
-        DateFormat('dd-MM-yyyy').format(tx.date),
-        tx.type.name,
-        tx.category.name,
-        tx.amount,
-        tx.description,
-        tx.walletName,
-      ]);
+      // Data
+      for (final tx in transactions) {
+        rows.add([
+          DateFormat('dd-MM-yyyy').format(tx.date),
+          tx.type.name,
+          tx.category.name,
+          tx.amount,
+          tx.description,
+          tx.walletName,
+        ]);
+      }
+
+      String csvData = const ListToCsvConverter().convert(rows);
+
+      final directory = await getApplicationDocumentsDirectory();
+      final monthYear = DateFormat('MMMM-yyyy').format(date);
+      final filePath = '${directory.path}/SmartMoney_History_$monthYear.csv';
+      final file = File(filePath);
+
+      await file.writeAsString(csvData);
+
+      try {
+        await OpenFile.open(filePath);
+      } catch (_) {
+        // Ignore open file error on some devices
+      }
+
+      return 'Berhasil! File disimpan di: $filePath';
+    } catch (e) {
+      return 'Gagal membuat file CSV: $e';
     }
-
-    String csvData = const ListToCsvConverter().convert(rows);
-
-    final directory = await getApplicationDocumentsDirectory();
-    final monthYear = DateFormat('MMMM-yyyy').format(date);
-    final filePath = '${directory.path}/SmartMoney_History_$monthYear.csv';
-    final file = File(filePath);
-
-    await file.writeAsString(csvData);
-
-    await OpenFile.open(filePath);
-
-    return 'Berhasil! File disimpan di: $filePath';
   }
 
   Future<String> _createPdf(

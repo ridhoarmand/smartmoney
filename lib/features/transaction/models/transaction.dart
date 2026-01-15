@@ -27,16 +27,45 @@ class Transaction {
 
   factory Transaction.fromFirestore(
       Map<String, dynamic> data, String documentId) {
+    // Safely parse TransactionType
+    TransactionType parsedType;
+    try {
+      final typeStr = (data['type'] ?? data['categoryType'] ?? 'expense')
+          .toString()
+          .toLowerCase();
+      parsedType = TransactionType.values.firstWhere(
+        (e) => e.name.toLowerCase() == typeStr,
+        orElse: () => TransactionType.expense,
+      );
+    } catch (_) {
+      parsedType = TransactionType.expense;
+    }
+
+    // Safely parse CategoryType
+    CategoryType parsedCategory;
+    try {
+      final categoryStr = (data['category'] ?? data['categoryName'] ?? 'other')
+          .toString()
+          .toLowerCase();
+      parsedCategory = CategoryType.values.firstWhere(
+        (e) => e.name.toLowerCase() == categoryStr,
+        orElse: () => CategoryType.other,
+      );
+    } catch (_) {
+      parsedCategory = CategoryType.other;
+    }
+
     return Transaction(
       id: documentId,
-      amount: (data['amount'] as num).toDouble(),
-      date: (data['date'] as Timestamp).toDate(),
-      description: data['description'] ?? '',
-      type: TransactionType.values.firstWhere((e) => e.name == data['type']),
-      category:
-          CategoryType.values.firstWhere((e) => e.name == data['category']),
-      walletId: data['walletId'] ?? '',
-      walletName: data['walletName'] ?? '',
+      amount: (data['amount'] as num?)?.toDouble() ?? 0.0,
+      date: data['date'] != null
+          ? (data['date'] as Timestamp).toDate()
+          : DateTime.now(),
+      description: data['description']?.toString() ?? '',
+      type: parsedType,
+      category: parsedCategory,
+      walletId: data['walletId']?.toString() ?? '',
+      walletName: data['walletName']?.toString() ?? '',
     );
   }
 

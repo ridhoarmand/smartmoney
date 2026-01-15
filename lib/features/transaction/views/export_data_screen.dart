@@ -18,12 +18,11 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
 
   Future<void> _selectDate(BuildContext context) async {
     final now = DateTime.now();
-    final currentYear = now.year;
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(currentYear),
-      lastDate: DateTime(currentYear + 5, 12, 31),
+      firstDate: DateTime(2025),
+      lastDate: DateTime(now.year + 1, 12, 31),
       initialDatePickerMode: DatePickerMode.year,
     );
     if (picked != null && picked != _selectedDate) {
@@ -50,7 +49,11 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
       format: _selectedFormat,
     );
 
-    SnackBarHelper.showSuccess(context, result);
+    if (result.contains('Berhasil') || result.contains('Membuka')) {
+      SnackBarHelper.showSuccess(context, result);
+    } else {
+      SnackBarHelper.showError(context, result);
+    }
   }
 
   @override
