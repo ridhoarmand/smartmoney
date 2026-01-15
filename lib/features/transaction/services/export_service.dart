@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:excel/excel.dart';
+import 'package:csv/csv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,7 +12,7 @@ import 'package:smartmoney/features/transaction/models/transaction.dart'
     as model;
 import 'package:open_file/open_file.dart';
 
-enum ExportFormat { excel, pdf }
+enum ExportFormat { csv, pdf }
 
 final exportServiceProvider = Provider((ref) => ExportService(ref));
 
@@ -33,8 +33,8 @@ class ExportService {
         return 'Tidak ada data transaksi untuk diexport pada bulan ini.';
       }
 
-      if (format == ExportFormat.excel) {
-        return await _createExcel(transactions, date);
+      if (format == ExportFormat.csv) {
+        return await _createCsv(transactions, date);
       } else {
         return await _createPdf(transactions, date);
       }
@@ -62,39 +62,33 @@ class ExportService {
         .toList();
   }
 
-  Future<String> _createExcel(
+  Future<String> _createCsv(
       List<model.Transaction> transactions, DateTime date) async {
-    final excel = Excel.createExcel();
-    final sheet = excel['History Transaksi'];
-
     // Header
-    sheet.appendRow([
-      TextCellValue('Tanggal'),
-      TextCellValue('Tipe'),
-      TextCellValue('Kategori'),
-      TextCellValue('Nominal'),
-      TextCellValue('Deskripsi'),
-      TextCellValue('Dompet')
-    ]);
+    List<List<dynamic>> rows = [
+      ['Tanggal', 'Tipe', 'Kategori', 'Nominal', 'Deskripsi', 'Dompet']
+    ];
 
     // Data
     for (final tx in transactions) {
-      sheet.appendRow([
-        TextCellValue(DateFormat('dd-MM-yyyy').format(tx.date)),
-        TextCellValue(tx.type.name),
-        TextCellValue(tx.category.name),
-        DoubleCellValue(tx.amount),
-        TextCellValue(tx.description),
-        TextCellValue(tx.walletName),
+      rows.add([
+        DateFormat('dd-MM-yyyy').format(tx.date),
+        tx.type.name,
+        tx.category.name,
+        tx.amount,
+        tx.description,
+        tx.walletName,
       ]);
     }
 
+    String csvData = const ListToCsvConverter().convert(rows);
+
     final directory = await getApplicationDocumentsDirectory();
     final monthYear = DateFormat('MMMM-yyyy').format(date);
-    final filePath = '${directory.path}/SmartMoney_History_$monthYear.xlsx';
+    final filePath = '${directory.path}/SmartMoney_History_$monthYear.csv';
     final file = File(filePath);
 
-    await file.writeAsBytes(excel.encode()!);
+    await file.writeAsString(csvData);
 
     await OpenFile.open(filePath);
 

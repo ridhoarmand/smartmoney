@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/snackbar_helper.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -41,12 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error checking login status: $e'),
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        SnackBarHelper.showError(context, 'Error checking login status: $e');
         // Pada error, arahkan ke login untuk aman
         context.go('/signin');
       }

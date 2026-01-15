@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/snackbar_helper.dart';
 
 import '../providers/auth_provider.dart';
 
@@ -104,15 +105,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   void _showError(String message) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    SnackBarHelper.showError(context, message);
   }
 
   // Improved sign in logic with better error handling

@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/snackbar_helper.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../transaction/service_providers/transaction_service_providers.dart';
+import '../../../transaction/services/export_service.dart';
 import '../../../wallet/models/wallet.dart';
 
 class ReportCardWidget extends ConsumerStatefulWidget {
@@ -22,6 +24,122 @@ class ReportCardWidget extends ConsumerStatefulWidget {
 
 class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
   bool isWeekly = true;
+  DateTime _selectedExportDate = DateTime.now();
+
+  void _showDownloadDialog(BuildContext context) {
+    ExportFormat selectedFormat = ExportFormat.csv;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Download Laporan'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Pilih Bulan dan Tahun:'),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          DateFormat('MMMM yyyy').format(_selectedExportDate),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _selectedExportDate,
+                            firstDate: DateTime(DateTime.now().year - 5),
+                            lastDate: DateTime(DateTime.now().year + 1, 12, 31),
+                            initialDatePickerMode: DatePickerMode.year,
+                          );
+                          if (picked != null) {
+                            setDialogState(() {
+                              _selectedExportDate = picked;
+                            });
+                          }
+                        },
+                        child: const Text('Pilih'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Pilih Format:'),
+                  RadioListTile<ExportFormat>(
+                    title: const Text('CSV (.csv)'),
+                    value: ExportFormat.csv,
+                    groupValue: selectedFormat,
+                    onChanged: (value) {
+                      if (value != null) {
+                        setDialogState(() => selectedFormat = value);
+                      }
+                    },
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  ),
+                  RadioListTile<ExportFormat>(
+                    title: const Text('PDF (.pdf)'),
+                    value: ExportFormat.pdf,
+                    groupValue: selectedFormat,
+                    onChanged: (value) {
+                      if (value != null) {
+                        setDialogState(() => selectedFormat = value);
+                      }
+                    },
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Batal'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(dialogContext);
+                    await _downloadReport(selectedFormat);
+                  },
+                  child: const Text('Download'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _downloadReport(ExportFormat format) async {
+    final uid = ref.read(authRepositoryProvider).currentUser?.uid;
+    if (uid == null) {
+      SnackBarHelper.showError(
+          context, 'User tidak ditemukan. Silakan login kembali.');
+      return;
+    }
+
+    final exportService = ref.read(exportServiceProvider);
+    final result = await exportService.exportTransactions(
+      userId: uid,
+      date: _selectedExportDate,
+      format: format,
+    );
+
+    if (mounted) {
+      if (result.contains('Berhasil') || result.contains('Membuka')) {
+        SnackBarHelper.showSuccess(context, result);
+      } else {
+        SnackBarHelper.showError(context, result);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,9 +229,18 @@ class _ReportCardWidgetState extends ConsumerState<ReportCardWidget> {
                   'Report',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                TextButton(
-                  onPressed: () => context.push('/report-transactions'),
-                  child: const Text('See Details'),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.download, size: 20),
+                      tooltip: 'Download Report',
+                      onPressed: () => _showDownloadDialog(context),
+                    ),
+                    TextButton(
+                      onPressed: () => context.push('/report-transactions'),
+                      child: const Text('See Details'),
+                    ),
+                  ],
                 ),
               ],
             ),

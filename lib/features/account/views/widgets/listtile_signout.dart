@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/snackbar_helper.dart';
 
 import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/repositories/auth_repository.dart';
@@ -23,12 +24,7 @@ class ListTileSignOut extends ConsumerWidget {
           await authRepository.signOut();
           if (!context.mounted) return;
           // Cek apakah masih mounted sebelum menggunakan context
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Logout success'),
-              duration: Duration(seconds: 3),
-            ),
-          );
+          SnackBarHelper.showSuccess(context, 'Logout success');
           // Periksa apakah user sudah logout
           if (!ref.read(authRepositoryProvider).isSignedIn) {
             // Navigasi ke halaman login
@@ -36,12 +32,7 @@ class ListTileSignOut extends ConsumerWidget {
           }
         } catch (e) {
           // Tangani kesalahan jika ada
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to logout: $e'),
-              duration: const Duration(seconds: 3),
-            ),
-          );
+          SnackBarHelper.showError(context, 'Failed to logout: $e');
         }
       },
     );

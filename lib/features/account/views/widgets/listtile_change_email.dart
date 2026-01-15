@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/snackbar_helper.dart';
 
 class ListTileChangeEmail extends ConsumerStatefulWidget {
   const ListTileChangeEmail({
@@ -109,20 +110,12 @@ class _ListTileChangeEmailState extends ConsumerState<ListTileChangeEmail> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Verification email sent. Please check your inbox.'),
-          ),
-        );
+        SnackBarHelper.showSuccess(
+            context, 'Verification email sent. Please check your inbox.');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        SnackBarHelper.showError(context, 'Error: ${e.toString()}');
       }
     } finally {
       setState(() => _isLoading = false);

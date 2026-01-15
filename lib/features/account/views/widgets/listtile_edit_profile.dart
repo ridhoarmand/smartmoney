@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/snackbar_helper.dart';
 
 import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/repositories/auth_repository.dart';
@@ -70,22 +71,13 @@ class ListTileEditProfil extends ConsumerWidget {
           ref.invalidate(authRepositoryProvider);
           ref.read(authRepositoryProvider);
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Profile updated successfully'),
-              duration: Duration(seconds: 1),
-            ),
-          );
+          SnackBarHelper.showSuccess(context, 'Profile updated successfully');
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error navigating to edit account: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        SnackBarHelper.showError(
+            context, 'Error navigating to edit account: $e');
       }
     }
   }

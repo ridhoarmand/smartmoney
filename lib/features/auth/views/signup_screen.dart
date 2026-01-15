@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/snackbar_helper.dart';
 
 import '../providers/auth_provider.dart';
 
@@ -66,9 +67,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    SnackBarHelper.showError(context, message);
   }
 
   @override

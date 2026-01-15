@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import '../../../core/snackbar_helper.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../service_providers/transaction_service_providers.dart';
 import 'category_selection_screen.dart';
@@ -78,9 +79,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
       return await storageRef.getDownloadURL();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Image upload failed: $e')),
-      );
+      SnackBarHelper.showError(context, 'Image upload failed: $e');
       return null;
     }
   }
@@ -108,19 +107,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           imagePath: _imageUrl,
         );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaction added successfully!')),
-        );
+        SnackBarHelper.showSuccess(context, 'Transaction added successfully!');
         Navigator.of(context).pop();
       } catch (error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add transaction: $error')),
-        );
+        SnackBarHelper.showError(context, 'Failed to add transaction: $error');
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete all required fields.')),
-      );
+      SnackBarHelper.showError(context, 'Please complete all required fields.');
     }
   }
 

@@ -60,7 +60,7 @@ dependencies:
   firebase_messaging: ^16.0.2
   flutter_local_notifications: ^19.4.2
   firebase_remote_config: ^6.0.2
-  excel: ^4.0.4
+  csv: ^6.0.0
   pdf: ^3.10.8
   printing: ^5.12.0
   path_provider: ^2.1.3

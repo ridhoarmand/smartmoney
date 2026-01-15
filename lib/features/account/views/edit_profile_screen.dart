@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/snackbar_helper.dart';
 
 import '../../auth/providers/auth_provider.dart';
 import '../repositori_providers/edit_profile_repository.dart';
@@ -53,12 +54,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           name: _nameController.text,
           imageFile: _imageFile,
           onError: (error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Failed to update account: $error'),
-                backgroundColor: Colors.red,
-              ),
-            );
+            SnackBarHelper.showError(
+                context, 'Failed to update account: $error');
           },
           onSuccess: () {
             context.pop(true);

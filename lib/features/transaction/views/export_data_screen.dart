@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:smartmoney/core/snackbar_helper.dart';
 import 'package:smartmoney/features/auth/providers/auth_provider.dart';
 import 'package:smartmoney/features/transaction/services/export_service.dart';
 
@@ -13,7 +14,7 @@ class ExportDataScreen extends ConsumerStatefulWidget {
 
 class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
   DateTime _selectedDate = DateTime.now();
-  ExportFormat _selectedFormat = ExportFormat.excel;
+  ExportFormat _selectedFormat = ExportFormat.csv;
 
   Future<void> _selectDate(BuildContext context) async {
     final now = DateTime.now();
@@ -38,10 +39,8 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
     // Pastikan currentUser tidak null sebelum mengakses uid
     final user = ref.read(authRepositoryProvider).currentUser;
     if (user == null) {
-      scaffoldMessenger.showSnackBar(
-        const SnackBar(
-            content: Text('User tidak ditemukan. Silakan login kembali.')),
-      );
+      SnackBarHelper.showError(
+          context, 'User tidak ditemukan. Silakan login kembali.');
       return;
     }
 
@@ -51,9 +50,7 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
       format: _selectedFormat,
     );
 
-    scaffoldMessenger.showSnackBar(
-      SnackBar(content: Text(result)),
-    );
+    SnackBarHelper.showSuccess(context, result);
   }
 
   @override
@@ -88,8 +85,8 @@ class _ExportDataScreenState extends ConsumerState<ExportDataScreen> {
             Text('Pilih Format Dokumen', style: theme.textTheme.titleLarge),
             const SizedBox(height: 16),
             RadioListTile<ExportFormat>(
-              title: const Text('Excel (.xlsx)'),
-              value: ExportFormat.excel,
+              title: const Text('CSV (.csv)'),
+              value: ExportFormat.csv,
               groupValue: _selectedFormat,
               onChanged: (ExportFormat? value) {
                 if (value != null) {

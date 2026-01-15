@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import '../../../core/snackbar_helper.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/user_transaction_model.dart';
 import '../service_providers/transaction_service_providers.dart';
@@ -97,19 +98,19 @@ class _UpdateTransactionScreenState
 
       return await storageRef.getDownloadURL();
     } catch (e) {
-      _showSnackBar('Image upload failed: $e');
+      _showSnackBar('Image upload failed: $e', isError: true);
       return null;
     }
   }
 
   Future<void> _updateTransaction(String uid) async {
     if (!_formKey.currentState!.validate()) {
-      _showSnackBar('Please complete all required fields.');
+      _showSnackBar('Please complete all required fields.', isError: true);
       return;
     }
 
     if (_selectedCategoryType == null || _selectedWalletId == null) {
-      _showSnackBar('Category and Wallet are required.');
+      _showSnackBar('Category and Wallet are required.', isError: true);
       return;
     }
 
@@ -136,7 +137,7 @@ class _UpdateTransactionScreenState
       _showSnackBar('Transaction updated successfully!');
       Navigator.of(context).pop();
     } catch (error) {
-      _showSnackBar('Failed to update transaction: $error');
+      _showSnackBar('Failed to update transaction: $error', isError: true);
     }
   }
 
@@ -152,7 +153,7 @@ class _UpdateTransactionScreenState
       _showSnackBar('Transaction deleted successfully!');
       Navigator.of(context).pop();
     } catch (error) {
-      _showSnackBar('Failed to delete transaction: $error');
+      _showSnackBar('Failed to delete transaction: $error', isError: true);
     }
   }
 
@@ -180,9 +181,12 @@ class _UpdateTransactionScreenState
     );
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (isError) {
+      SnackBarHelper.showError(context, message);
+    } else {
+      SnackBarHelper.showSuccess(context, message);
+    }
   }
 
   @override

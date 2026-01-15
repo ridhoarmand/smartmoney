@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/snackbar_helper.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -8,11 +9,8 @@ class AboutScreen extends StatelessWidget {
     const url = '';
     await Clipboard.setData(const ClipboardData(text: url));
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('GitHub repository URL copied to clipboard'),
-        ),
-      );
+      SnackBarHelper.showSuccess(
+          context, 'GitHub repository URL copied to clipboard');
     }
   }
 
